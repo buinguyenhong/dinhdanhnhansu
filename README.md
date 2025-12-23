@@ -17,5 +17,3 @@ Dữ liệu đã được cấu hình sẵn trong:
 1. Cài đặt thư viện: `npm install`
 2. Chạy môi trường dev: `npm run dev`
 3. Build dự án: `npm run build`
-"# dinhdanhnhansu" 
-"# dinhdanhnhansu" 
