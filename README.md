@@ -8,12 +8,3 @@
 - **Backend:** Supabase (Lưu trữ thông tin nhân viên, tỉnh thành).
 - **Storage:** Cloudinary (Lưu trữ ảnh CCCD).
 
-## Cấu hình
-Dữ liệu đã được cấu hình sẵn trong:
-- `supabaseClient.ts`: Kết nối Database.
-- `storageService.ts`: Cấu hình Cloudinary.
-
-## Cách chạy dự án
-1. Cài đặt thư viện: `npm install`
-2. Chạy môi trường dev: `npm run dev`
-3. Build dự án: `npm run build`
