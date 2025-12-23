@@ -1,0 +1,8 @@
+
+{
+  "name": "Cập Nhật Thông Tin Nhân Viên (Lite)",
+  "description": "Ứng dụng cập nhật định danh sử dụng Cloudinary và Discord Webhook.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
