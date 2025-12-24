@@ -19,7 +19,8 @@ import {
   Image as ImageIcon,
   CreditCard,
   Calendar,
-  ShieldCheck
+  ShieldCheck,
+  PenLine
 } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -48,14 +49,16 @@ const App: React.FC = () => {
     cccd_issuer: '',
   });
 
-  const [files, setFiles] = useState<{ front: File | null; back: File | null }>({
+  const [files, setFiles] = useState<{ front: File | null; back: File | null; signature: File | null }>({
     front: null,
-    back: null
+    back: null,
+    signature: null
   });
 
-  const [previews, setPreviews] = useState<{ front: string; back: string }>({
+  const [previews, setPreviews] = useState<{ front: string; back: string; signature: string }>({
     front: '',
-    back: ''
+    back: '',
+    signature: ''
   });
 
   useEffect(() => {
@@ -109,8 +112,8 @@ const App: React.FC = () => {
       cccd_date: '',
       cccd_issuer: '',
     });
-    setPreviews({ front: '', back: '' });
-    setFiles({ front: null, back: null });
+    setPreviews({ front: '', back: '', signature: '' });
+    setFiles({ front: null, back: null, signature: null });
     setStep(2);
   };
 
@@ -119,7 +122,7 @@ const App: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, side: 'front' | 'back') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, side: 'front' | 'back' | 'signature') => {
     const file = e.target.files?.[0];
     if (file) {
       setFiles(prev => ({ ...prev, [side]: file }));
@@ -132,20 +135,22 @@ const App: React.FC = () => {
   };
 
   const handleFinalSubmit = async () => {
-    if (!selectedStaff || !files.front || !files.back) return;
+    if (!selectedStaff || !files.front || !files.back || !files.signature) return;
     setIsLoading(true);
     setError(null);
 
     try {
-      const [frontUrl, backUrl] = await Promise.all([
+      const [frontUrl, backUrl, signatureUrl] = await Promise.all([
         storageService.uploadCCCD(files.front, `${selectedStaff.id}_cccd1`),
-        storageService.uploadCCCD(files.back, `${selectedStaff.id}_cccd2`)
+        storageService.uploadCCCD(files.back, `${selectedStaff.id}_cccd2`),
+        storageService.uploadCCCD(files.signature, `${selectedStaff.id}_signature`)
       ]);
 
       await supabaseService.saveStaffUpdate(selectedStaff.id, {
         ...formData,
         cccd_front_url: frontUrl,
-        cccd_back_url: backUrl
+        cccd_back_url: backUrl,
+        signature_url: signatureUrl
       });
 
       setStep(4);
@@ -189,7 +194,7 @@ const App: React.FC = () => {
             <Fingerprint size={28} />
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-800 tracking-tight">BVDK Thien Hanh</h1>
+            <h1 className="text-xl font-black text-slate-800 tracking-tight">BVDK Thiện Hạnh</h1>
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Định Danh Nhân Viên</p>
           </div>
         </div>
@@ -355,43 +360,64 @@ const App: React.FC = () => {
                 disabled={!isStep2Valid()}
                 className="w-full h-18 bg-indigo-600 text-white rounded-[1.8rem] font-black text-lg shadow-2xl shadow-indigo-100 active:scale-95 disabled:opacity-40 transition-all flex items-center justify-center gap-3"
               >
-                Tiếp tục: Chụp ảnh CCCD <ChevronRight size={24} />
+                Tiếp tục: Hồ sơ hình ảnh <ChevronRight size={24} />
               </button>
             </div>
           </div>
         )}
 
-        {/* BƯỚC 3: TẢI ẢNH CCCD */}
+        {/* BƯỚC 3: TẢI ẢNH CCCD & CHỮ KÝ */}
         {step === 3 && selectedStaff && (
           <div className="space-y-8 animate-in slide-in-from-right-10 duration-500">
             <div className="text-center space-y-2">
-              <h3 className="text-3xl font-black text-slate-800 tracking-tighter">Hình ảnh CCCD</h3>
-              <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">Chụp rõ nét, không mất góc</p>
+              <h3 className="text-3xl font-black text-slate-800 tracking-tighter">Hình ảnh hồ sơ</h3>
+              <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">Tải lên CCCD và Chữ ký cá nhân</p>
             </div>
             
-            <div className="grid grid-cols-1 gap-8">
-              {[ {id: 'front' as const, label: 'Thẻ Mặt Trước'}, {id: 'back' as const, label: 'Thẻ Mặt Sau'} ].map(side => (
-                <div key={side.id} className="relative glass-card p-5 rounded-[3rem] border-2 border-dashed border-slate-200 group transition-all hover:border-indigo-400">
-                  <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, side.id)} className="absolute inset-0 opacity-0 z-20 cursor-pointer" />
-                  <div className="aspect-[1.6/1] bg-slate-50 rounded-[2.5rem] flex flex-col items-center justify-center overflow-hidden transition-all group-hover:bg-indigo-50 shadow-inner">
-                    {previews[side.id] ? (
-                      <img src={previews[side.id]} className="w-full h-full object-cover animate-in fade-in zoom-in-110 duration-700" alt={side.label} />
-                    ) : (
-                      <>
-                        <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-indigo-500 shadow-xl mb-4">
-                          <Camera size={40} />
-                        </div>
-                        <span className="text-xs font-black text-indigo-600 uppercase tracking-[0.3em]">{side.label}</span>
-                      </>
-                    )}
+            <div className="grid grid-cols-1 gap-6">
+              {/* Phần CCCD */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[ {id: 'front' as const, label: 'CCCD Mặt Trước'}, {id: 'back' as const, label: 'CCCD Mặt Sau'} ].map(side => (
+                  <div key={side.id} className="relative glass-card p-4 rounded-[2.5rem] border-2 border-dashed border-slate-200 group transition-all hover:border-indigo-400">
+                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, side.id)} className="absolute inset-0 opacity-0 z-20 cursor-pointer" />
+                    <div className="aspect-[1.6/1] bg-slate-50 rounded-[2rem] flex flex-col items-center justify-center overflow-hidden transition-all group-hover:bg-indigo-50 shadow-inner">
+                      {previews[side.id] ? (
+                        <img src={previews[side.id]} className="w-full h-full object-cover animate-in fade-in zoom-in-110 duration-700" alt={side.label} />
+                      ) : (
+                        <>
+                          <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-500 shadow-lg mb-2">
+                            <Camera size={28} />
+                          </div>
+                          <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em]">{side.label}</span>
+                        </>
+                      )}
+                    </div>
                   </div>
+                ))}
+              </div>
+
+              {/* Phần Chữ Ký */}
+              <div className="relative glass-card p-6 rounded-[3rem] border-2 border-dashed border-indigo-200 group transition-all hover:border-indigo-500 bg-indigo-50/30">
+                <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'signature')} className="absolute inset-0 opacity-0 z-20 cursor-pointer" />
+                <div className="aspect-[2/1] bg-white rounded-[2rem] flex flex-col items-center justify-center overflow-hidden transition-all group-hover:bg-indigo-50 shadow-md">
+                  {previews.signature ? (
+                    <img src={previews.signature} className="w-full h-full object-contain p-4 animate-in fade-in zoom-in-110 duration-700" alt="Chữ ký" />
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white shadow-xl mb-3">
+                        <PenLine size={32} />
+                      </div>
+                      <span className="text-xs font-black text-indigo-700 uppercase tracking-[0.3em]">Tải lên chữ ký cá nhân</span>
+                      <p className="text-[10px] text-indigo-400 font-bold mt-2">Ký trên giấy trắng và chụp ảnh</p>
+                    </>
+                  )}
                 </div>
-              ))}
+              </div>
             </div>
 
             <button 
               onClick={handleFinalSubmit}
-              disabled={!previews.front || !previews.back}
+              disabled={!previews.front || !previews.back || !previews.signature}
               className="w-full h-20 bg-green-600 text-white rounded-[2.5rem] font-black text-xl shadow-2xl shadow-green-100 active:scale-95 disabled:opacity-40 transition-all flex items-center justify-center gap-4"
             >
               <CheckCircle2 size={32} /> XÁC NHẬN VÀ GỬI HỒ SƠ
