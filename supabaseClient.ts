@@ -76,6 +76,7 @@ export const supabaseService = {
         cccd_issuer: payload.cccd_issuer,
         cccd_front_url: payload.cccd_front_url,
         cccd_back_url: payload.cccd_back_url,
+        signature_url: payload.signature_url,
         updated_at: new Date().toISOString()
       })
       .eq('id', staffId);
