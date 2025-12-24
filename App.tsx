@@ -189,8 +189,8 @@ const App: React.FC = () => {
             <Fingerprint size={28} />
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-800 tracking-tight">Identity Hub</h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Employee Verification</p>
+            <h1 className="text-xl font-black text-slate-800 tracking-tight">BVDK Thien Hanh</h1>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Định Danh Nhân Viên</p>
           </div>
         </div>
         {step > 1 && step < 4 && (
