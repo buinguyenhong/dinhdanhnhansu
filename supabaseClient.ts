@@ -70,6 +70,10 @@ export const supabaseService = {
         email: payload.email,
         province_code: payload.province_code,
         ward_code: payload.ward_code,
+        address_permanent: payload.address_permanent,
+        cccd_number: payload.cccd_number,
+        cccd_date: payload.cccd_date,
+        cccd_issuer: payload.cccd_issuer,
         cccd_front_url: payload.cccd_front_url,
         cccd_back_url: payload.cccd_back_url,
         updated_at: new Date().toISOString()
