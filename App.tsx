@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { storageService } from './storageService';
 import { supabaseService } from './supabaseClient';
 import { Staff, Province, Ward, UpdateStaffPayload } from './types';
@@ -16,13 +16,106 @@ import {
   AlertCircle,
   Fingerprint,
   Building2,
-  Image as ImageIcon,
+  Search,
+  X,
   CreditCard,
   Calendar,
   ShieldCheck,
   PenLine
 } from 'lucide-react';
 
+// --- Sub-component: SearchableSelect ---
+interface SearchableSelectProps {
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  label: string;
+  icon: React.ElementType;
+  disabled?: boolean;
+}
+
+const SearchableSelect: React.FC<SearchableSelectProps> = ({ options, value, onChange, placeholder, label, icon: Icon, disabled }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredOptions = useMemo(() => {
+    return options.filter(opt => 
+      opt.label.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [options, search]);
+
+  const selectedLabel = options.find(opt => opt.value === value)?.label || "";
+
+  return (
+    <div className="space-y-2 relative" ref={containerRef}>
+      <label className="text-[10px] font-black text-slate-400 uppercase ml-3 tracking-widest">{label}</label>
+      <div 
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`relative w-full h-14 bg-white rounded-[1.2rem] px-5 flex items-center border-2 transition-all cursor-pointer shadow-sm ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-indigo-300 focus-within:border-indigo-400'} ${isOpen ? 'border-indigo-400 ring-4 ring-indigo-50' : 'border-slate-50'}`}
+      >
+        <Icon className="text-slate-300 mr-3" size={18} />
+        <span className={`text-sm font-bold truncate ${!selectedLabel ? 'text-slate-400' : 'text-slate-700'}`}>
+          {selectedLabel || placeholder}
+        </span>
+        <ChevronRight size={16} className={`absolute right-4 text-slate-300 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+      </div>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-[1.5rem] shadow-2xl z-[100] border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="p-3 border-b border-slate-50 bg-slate-50/50">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+              <input
+                autoFocus
+                type="text"
+                className="w-full h-10 pl-9 pr-4 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-50"
+                placeholder="Gõ để tìm kiếm..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          </div>
+          <div className="max-h-60 overflow-y-auto custom-scrollbar">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map(opt => (
+                <div
+                  key={opt.value}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChange(opt.value);
+                    setIsOpen(false);
+                    setSearch("");
+                  }}
+                  className={`px-5 py-3.5 text-xs font-bold cursor-pointer transition-colors flex items-center justify-between ${value === opt.value ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}
+                >
+                  {opt.label}
+                  {value === opt.value && <CheckCircle2 size={14} className="text-indigo-600" />}
+                </div>
+              ))
+            ) : (
+              <div className="p-5 text-center text-[10px] font-bold text-slate-400 uppercase italic">Không tìm thấy kết quả</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// --- Main App Component ---
 const App: React.FC = () => {
   const [step, setStep] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -37,6 +130,7 @@ const App: React.FC = () => {
   // Selection states
   const [selectedDept, setSelectedDept] = useState<string>('');
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
+  const [staffSearch, setStaffSearch] = useState<string>('');
 
   const [formData, setFormData] = useState<UpdateStaffPayload>({
     phone: '',
@@ -117,6 +211,13 @@ const App: React.FC = () => {
     setStep(2);
   };
 
+  const filteredStaff = useMemo(() => {
+    return staffList.filter(s => 
+      s.name.toLowerCase().includes(staffSearch.toLowerCase()) ||
+      s.id.toLowerCase().includes(staffSearch.toLowerCase())
+    );
+  }, [staffList, staffSearch]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -194,7 +295,7 @@ const App: React.FC = () => {
             <Fingerprint size={28} />
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-800 tracking-tight">BVDK Thiện Hạnh</h1>
+            <h1 className="text-xl font-black text-slate-800 tracking-tight">BVDK THIỆN HẠNH</h1>
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Cập Nhật Thông Tin Hành Chính Nhân Viên</p>
           </div>
         </div>
@@ -232,27 +333,38 @@ const App: React.FC = () => {
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
             <div className="glass-card p-10 rounded-[3rem] shadow-2xl">
               <h2 className="text-3xl font-black text-slate-800 mb-8 tracking-tighter">Bắt đầu xác thực</h2>
-              <div className="space-y-4">
-                <label className="text-xs font-black text-slate-400 uppercase ml-3 tracking-widest">Phòng ban / Khoa</label>
-                <div className="relative">
-                  <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
-                  <select 
-                    className="w-full h-16 pl-14 pr-5 rounded-[1.5rem] border-2 border-transparent bg-white shadow-inner focus:border-indigo-500 outline-none font-bold text-slate-700 appearance-none transition-all"
-                    value={selectedDept}
-                    onChange={(e) => setSelectedDept(e.target.value)}
-                  >
-                    <option value="">Chọn khoa/phòng...</option>
-                    {depts.map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-              </div>
+              
+              <SearchableSelect
+                label="Phòng ban / Khoa"
+                options={depts.map(d => ({ value: d, label: d }))}
+                value={selectedDept}
+                onChange={setSelectedDept}
+                placeholder="Chọn khoa/phòng..."
+                icon={Building2}
+              />
             </div>
 
             {selectedDept && (
-              <div className="space-y-3 animate-in slide-in-from-bottom-8 duration-500">
-                <p className="text-xs font-black text-slate-400 uppercase ml-5 tracking-[0.2em]">Danh sách nhân viên</p>
-                <div className="grid grid-cols-1 gap-3">
-                  {staffList.length > 0 ? staffList.map(staff => (
+              <div className="space-y-4 animate-in slide-in-from-bottom-8 duration-500">
+                <div className="flex items-center justify-between px-5">
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Danh sách nhân viên</p>
+                </div>
+                
+                <div className="px-2">
+                  <div className="relative">
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input 
+                      type="text"
+                      className="w-full h-14 pl-14 pr-6 bg-white/50 backdrop-blur border-2 border-slate-50 rounded-[1.5rem] font-bold text-slate-700 outline-none focus:border-indigo-300 shadow-sm transition-all"
+                      placeholder="Tìm tên hoặc mã nhân viên..."
+                      value={staffSearch}
+                      onChange={(e) => setStaffSearch(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 max-h-[50vh] overflow-y-auto px-2 pb-10 custom-scrollbar">
+                  {filteredStaff.length > 0 ? filteredStaff.map(staff => (
                     <button
                       key={staff.id}
                       onClick={() => handleStaffSelect(staff)}
@@ -272,7 +384,10 @@ const App: React.FC = () => {
                       </div>
                     </button>
                   )) : (
-                    <div className="p-10 text-center text-slate-400 font-bold italic">Không có nhân viên trong khoa này</div>
+                    <div className="p-16 glass-card rounded-[2rem] text-center flex flex-col items-center gap-4 text-slate-400">
+                       <Search size={32} className="opacity-20" />
+                       <p className="font-bold italic">Không tìm thấy nhân viên phù hợp</p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -297,23 +412,26 @@ const App: React.FC = () => {
                 <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-2">Thông tin địa chỉ & Liên lạc</p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase ml-3 tracking-widest">Tỉnh / Thành phố</label>
-                    <select name="province_code" value={formData.province_code} onChange={handleInputChange} className="w-full h-14 bg-white rounded-[1.2rem] px-5 font-bold border-2 border-slate-50 outline-none shadow-sm focus:border-indigo-400 transition-all text-sm">
-                      <option value="">Chọn Tỉnh</option>
-                      {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase ml-3 tracking-widest">Quận / Huyện / Xã</label>
-                    <select name="ward_code" value={formData.ward_code} onChange={handleInputChange} className="w-full h-14 bg-white rounded-[1.2rem] px-5 font-bold border-2 border-slate-50 outline-none shadow-sm focus:border-indigo-400 transition-all text-sm">
-                      <option value="">Chọn Xã/Phường</option>
-                      {wards.map(w => <option key={w.code} value={w.code}>{w.name}</option>)}
-                    </select>
-                  </div>
+                  <SearchableSelect
+                    label="Tỉnh / Thành phố"
+                    options={provinces.map(p => ({ value: p.code, label: p.name }))}
+                    value={formData.province_code}
+                    onChange={(val) => setFormData(prev => ({ ...prev, province_code: val, ward_code: '' }))}
+                    placeholder="Chọn Tỉnh"
+                    icon={MapPin}
+                  />
+                  <SearchableSelect
+                    label="Quận / Huyện / Xã"
+                    options={wards.map(w => ({ value: w.code, label: w.name }))}
+                    value={formData.ward_code}
+                    onChange={(val) => setFormData(prev => ({ ...prev, ward_code: val }))}
+                    placeholder="Chọn Xã/Phường"
+                    icon={MapPin}
+                    disabled={!formData.province_code}
+                  />
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-4 pt-2">
                   <div className="relative">
                     <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
                     <input type="text" name="address_permanent" value={formData.address_permanent} onChange={handleInputChange} placeholder="Địa chỉ thường trú (sau sát nhập)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
@@ -344,14 +462,17 @@ const App: React.FC = () => {
                     <input type="date" name="cccd_date" value={formData.cccd_date} onChange={handleInputChange} className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
                   </div>
 
-                  <div className="relative">
-                    <ShieldCheck className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                    <select name="cccd_issuer" value={formData.cccd_issuer} onChange={handleInputChange} className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm appearance-none">
-                      <option value="">Chọn Nơi cấp</option>
-                      <option value="BỘ CÔNG AN">BỘ CÔNG AN</option>
-                      <option value="CỤC TRƯỞNG CỤC CẢNH SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI">CỤC TRƯỞNG CỤC CẢNH SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI</option>
-                    </select>
-                  </div>
+                  <SearchableSelect
+                    label="Nơi cấp"
+                    options={[
+                      { value: "BỘ CÔNG AN", label: "BỘ CÔNG AN" },
+                      { value: "CỤC TRƯỞNG CỤC CẢNH SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI", label: "CỤC TRƯỞNG CỤC CẢNH SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI" }
+                    ]}
+                    value={formData.cccd_issuer}
+                    onChange={(val) => setFormData(prev => ({ ...prev, cccd_issuer: val }))}
+                    placeholder="Chọn Nơi cấp"
+                    icon={ShieldCheck}
+                  />
                 </div>
               </div>
 
