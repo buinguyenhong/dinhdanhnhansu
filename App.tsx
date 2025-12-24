@@ -355,7 +355,7 @@ const App: React.FC = () => {
                 disabled={!isStep2Valid()}
                 className="w-full h-18 bg-indigo-600 text-white rounded-[1.8rem] font-black text-lg shadow-2xl shadow-indigo-100 active:scale-95 disabled:opacity-40 transition-all flex items-center justify-center gap-3"
               >
-                Tiếp tục: Chụp ảnh thẻ <ChevronRight size={24} />
+                Tiếp tục: Chụp ảnh CCCD <ChevronRight size={24} />
               </button>
             </div>
           </div>
