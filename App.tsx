@@ -15,7 +15,11 @@ import {
   Loader2,
   AlertCircle,
   Fingerprint,
-  Building2
+  Building2,
+  Image as ImageIcon,
+  CreditCard,
+  Calendar,
+  ShieldCheck
 } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -38,6 +42,10 @@ const App: React.FC = () => {
     email: '',
     province_code: '',
     ward_code: '',
+    address_permanent: '',
+    cccd_number: '',
+    cccd_date: '',
+    cccd_issuer: '',
   });
 
   const [files, setFiles] = useState<{ front: File | null; back: File | null }>({
@@ -50,7 +58,6 @@ const App: React.FC = () => {
     back: ''
   });
 
-  // 1. Load Departments and Provinces on Mount
   useEffect(() => {
     const loadInitialData = async () => {
       setIsLoading(true);
@@ -70,7 +77,6 @@ const App: React.FC = () => {
     loadInitialData();
   }, []);
 
-  // 2. Load staff when department is selected
   useEffect(() => {
     if (selectedDept) {
       setIsLoading(true);
@@ -83,7 +89,6 @@ const App: React.FC = () => {
     }
   }, [selectedDept]);
 
-  // 3. Load wards when province is selected
   useEffect(() => {
     if (formData.province_code) {
       supabaseService.getWards(formData.province_code).then(setWards);
@@ -94,17 +99,22 @@ const App: React.FC = () => {
 
   const handleStaffSelect = (staff: Staff) => {
     setSelectedStaff(staff);
-    // Điền trước thông tin nếu nhân viên đã có dữ liệu cũ (optional)
     setFormData({
-      phone: staff.phone || '',
-      email: staff.email || '',
-      province_code: staff.province_code || '',
-      ward_code: staff.ward_code || '',
+      phone: '',
+      email: '',
+      province_code: '',
+      ward_code: '',
+      address_permanent: '',
+      cccd_number: '',
+      cccd_date: '',
+      cccd_issuer: '',
     });
+    setPreviews({ front: '', back: '' });
+    setFiles({ front: null, back: null });
     setStep(2);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -127,16 +137,11 @@ const App: React.FC = () => {
     setError(null);
 
     try {
-      // Step A: Upload to Cloudinary with custom names
-      const frontName = `${selectedStaff.id}_cccd1`;
-      const backName = `${selectedStaff.id}_cccd2`;
-
       const [frontUrl, backUrl] = await Promise.all([
-        storageService.uploadCCCD(files.front, frontName),
-        storageService.uploadCCCD(files.back, backName)
+        storageService.uploadCCCD(files.front, `${selectedStaff.id}_cccd1`),
+        storageService.uploadCCCD(files.back, `${selectedStaff.id}_cccd2`)
       ]);
 
-      // Step B: Save everything to Supabase
       await supabaseService.saveStaffUpdate(selectedStaff.id, {
         ...formData,
         cccd_front_url: frontUrl,
@@ -145,10 +150,22 @@ const App: React.FC = () => {
 
       setStep(4);
     } catch (err: any) {
-      setError(err.message || 'Lỗi trong quá trình gửi hồ sơ. Vui lòng kiểm tra lại cấu hình Cloudinary/Supabase.');
+      setError(err.message || 'Lỗi trong quá trình cập nhật hồ sơ.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const isStep2Valid = () => {
+    return (
+      formData.phone && 
+      formData.province_code && 
+      formData.ward_code && 
+      formData.address_permanent && 
+      formData.cccd_number && 
+      formData.cccd_date && 
+      formData.cccd_issuer
+    );
   };
 
   const ProgressIndicator = () => (
@@ -172,8 +189,8 @@ const App: React.FC = () => {
             <Fingerprint size={28} />
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-800 tracking-tight">Cập Nhật Định Danh</h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Xác thực nhân viên</p>
+            <h1 className="text-xl font-black text-slate-800 tracking-tight">Identity Hub</h1>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Employee Verification</p>
           </div>
         </div>
         {step > 1 && step < 4 && (
@@ -187,7 +204,7 @@ const App: React.FC = () => {
         <div className="fixed inset-0 bg-white/60 backdrop-blur-md z-50 flex flex-col items-center justify-center">
           <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-4">
             <Loader2 className="animate-spin text-indigo-600" size={48} />
-            <p className="font-black text-slate-700 uppercase tracking-widest text-xs">Đang đồng bộ dữ liệu...</p>
+            <p className="font-black text-slate-700 uppercase tracking-widest text-xs">Đang xử lý dữ liệu...</p>
           </div>
         </div>
       )}
@@ -196,7 +213,7 @@ const App: React.FC = () => {
         {step < 4 && <ProgressIndicator />}
         
         {error && (
-          <div className="mb-8 bg-red-50 border-l-4 border-red-500 p-5 rounded-r-[1.5rem] text-red-700 flex items-center gap-4 animate-in fade-in slide-in-from-top-4">
+          <div className="mb-8 bg-red-50 border-l-4 border-red-500 p-5 rounded-r-[1.5rem] text-red-700 flex items-center gap-4 animate-in fade-in">
             <AlertCircle size={24} />
             <div>
               <p className="text-sm font-black uppercase tracking-tight">Đã xảy ra lỗi</p>
@@ -234,7 +251,7 @@ const App: React.FC = () => {
                     <button
                       key={staff.id}
                       onClick={() => handleStaffSelect(staff)}
-                      className="w-full glass-card p-6 rounded-[2rem] flex items-center justify-between border-2 border-transparent hover:border-indigo-200 hover:bg-white active:scale-[0.98] transition-all shadow-lg"
+                      className="w-full glass-card p-6 rounded-[2rem] flex items-center justify-between border-2 border-transparent hover:border-indigo-200 hover:bg-white active:scale-[0.98] transition-all shadow-lg group"
                     >
                       <div className="flex items-center gap-5">
                         <div className="w-14 h-14 bg-gradient-to-tr from-indigo-500 to-indigo-800 rounded-2xl flex items-center justify-center text-white shadow-lg">
@@ -245,7 +262,7 @@ const App: React.FC = () => {
                           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{staff.id}</p>
                         </div>
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
+                      <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-indigo-50 group-hover:text-indigo-400 transition-colors">
                         <ChevronRight size={20} />
                       </div>
                     </button>
@@ -258,58 +275,94 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* BƯỚC 2: THÔNG TIN LIÊN LẠC */}
+        {/* BƯỚC 2: THÔNG TIN LIÊN LẠC & CCCD */}
         {step === 2 && selectedStaff && (
           <div className="space-y-6 animate-in slide-in-from-right-10 duration-500">
             <div className="bg-indigo-600 p-10 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl" />
               <h2 className="text-4xl font-black mb-1 leading-tight">{selectedStaff.name}</h2>
-              <p className="text-indigo-100 text-sm font-black uppercase tracking-[0.2em] opacity-80">{selectedStaff.department_name}</p>
+              <p className="text-indigo-100 text-sm font-black uppercase tracking-[0.2em] opacity-80">
+                {selectedStaff.department_name}
+              </p>
             </div>
 
             <div className="glass-card p-10 rounded-[3rem] shadow-2xl space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-400 uppercase ml-3 tracking-widest">Tỉnh / Thành phố</label>
-                  <select name="province_code" value={formData.province_code} onChange={handleInputChange} className="w-full h-16 bg-white rounded-[1.5rem] px-5 font-bold border-2 border-slate-50 outline-none shadow-sm focus:border-indigo-400 transition-all">
-                    <option value="">Chọn Tỉnh</option>
-                    {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
-                  </select>
+              {/* Địa chỉ & Liên lạc Section */}
+              <div className="space-y-6">
+                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-2">Thông tin địa chỉ & Liên lạc</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase ml-3 tracking-widest">Tỉnh / Thành phố</label>
+                    <select name="province_code" value={formData.province_code} onChange={handleInputChange} className="w-full h-14 bg-white rounded-[1.2rem] px-5 font-bold border-2 border-slate-50 outline-none shadow-sm focus:border-indigo-400 transition-all text-sm">
+                      <option value="">Chọn Tỉnh</option>
+                      {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase ml-3 tracking-widest">Quận / Huyện / Xã</label>
+                    <select name="ward_code" value={formData.ward_code} onChange={handleInputChange} className="w-full h-14 bg-white rounded-[1.2rem] px-5 font-bold border-2 border-slate-50 outline-none shadow-sm focus:border-indigo-400 transition-all text-sm">
+                      <option value="">Chọn Xã/Phường</option>
+                      {wards.map(w => <option key={w.code} value={w.code}>{w.name}</option>)}
+                    </select>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-400 uppercase ml-3 tracking-widest">Quận / Huyện / Xã</label>
-                  <select name="ward_code" value={formData.ward_code} onChange={handleInputChange} className="w-full h-16 bg-white rounded-[1.5rem] px-5 font-bold border-2 border-slate-50 outline-none shadow-sm focus:border-indigo-400 transition-all">
-                    <option value="">Chọn Xã/Phường</option>
-                    {wards.map(w => <option key={w.code} value={w.code}>{w.name}</option>)}
-                  </select>
+
+                <div className="space-y-4">
+                  <div className="relative">
+                    <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="text" name="address_permanent" value={formData.address_permanent} onChange={handleInputChange} placeholder="Địa chỉ thường trú (sau sát nhập)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                  </div>
+                  <div className="relative">
+                    <Phone className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Số điện thoại di động" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                  </div>
+                  <div className="relative">
+                    <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email cá nhân" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <label className="text-xs font-black text-slate-400 uppercase ml-3 tracking-widest">Liên hệ</label>
-                <div className="relative">
-                  <Phone className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
-                  <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Số điện thoại di động" className="w-full h-16 pl-16 pr-6 bg-white border-2 border-slate-50 rounded-[1.5rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all" />
-                </div>
-                <div className="relative">
-                  <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
-                  <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email cá nhân" className="w-full h-16 pl-16 pr-6 bg-white border-2 border-slate-50 rounded-[1.5rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all" />
+              {/* CCCD Details Section */}
+              <div className="space-y-6">
+                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-2">Chi tiết căn cước công dân</p>
+                
+                <div className="space-y-4">
+                  <div className="relative">
+                    <CreditCard className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="number" name="cccd_number" value={formData.cccd_number} onChange={handleInputChange} placeholder="Số căn cước công dân (12 số)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                  </div>
+
+                  <div className="relative">
+                    <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="date" name="cccd_date" value={formData.cccd_date} onChange={handleInputChange} className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                  </div>
+
+                  <div className="relative">
+                    <ShieldCheck className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <select name="cccd_issuer" value={formData.cccd_issuer} onChange={handleInputChange} className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm appearance-none">
+                      <option value="">Chọn Nơi cấp</option>
+                      <option value="BỘ CÔNG AN">BỘ CÔNG AN</option>
+                      <option value="CỤC TRƯỞNG CỤC CẢNH SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI">CỤC TRƯỞNG CỤC CẢNH SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
               <button 
                 onClick={() => setStep(3)}
-                disabled={!formData.phone || !formData.province_code || !formData.ward_code}
-                className="w-full h-18 bg-indigo-600 text-white rounded-[2rem] font-black text-lg shadow-2xl shadow-indigo-100 active:scale-95 disabled:opacity-40 transition-all flex items-center justify-center gap-3"
+                disabled={!isStep2Valid()}
+                className="w-full h-18 bg-indigo-600 text-white rounded-[1.8rem] font-black text-lg shadow-2xl shadow-indigo-100 active:scale-95 disabled:opacity-40 transition-all flex items-center justify-center gap-3"
               >
-                Tiếp tục: Chụp ảnh CCCD <ChevronRight size={24} />
+                Tiếp tục: Chụp ảnh thẻ <ChevronRight size={24} />
               </button>
             </div>
           </div>
         )}
 
         {/* BƯỚC 3: TẢI ẢNH CCCD */}
-        {step === 3 && (
+        {step === 3 && selectedStaff && (
           <div className="space-y-8 animate-in slide-in-from-right-10 duration-500">
             <div className="text-center space-y-2">
               <h3 className="text-3xl font-black text-slate-800 tracking-tighter">Hình ảnh CCCD</h3>
@@ -320,7 +373,7 @@ const App: React.FC = () => {
               {[ {id: 'front' as const, label: 'Thẻ Mặt Trước'}, {id: 'back' as const, label: 'Thẻ Mặt Sau'} ].map(side => (
                 <div key={side.id} className="relative glass-card p-5 rounded-[3rem] border-2 border-dashed border-slate-200 group transition-all hover:border-indigo-400">
                   <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, side.id)} className="absolute inset-0 opacity-0 z-20 cursor-pointer" />
-                  <div className="aspect-[1.6/1] bg-slate-50 rounded-[2.5rem] flex flex-col items-center justify-center overflow-hidden transition-all group-hover:bg-indigo-50 shadow-inner relative">
+                  <div className="aspect-[1.6/1] bg-slate-50 rounded-[2.5rem] flex flex-col items-center justify-center overflow-hidden transition-all group-hover:bg-indigo-50 shadow-inner">
                     {previews[side.id] ? (
                       <img src={previews[side.id]} className="w-full h-full object-cover animate-in fade-in zoom-in-110 duration-700" alt={side.label} />
                     ) : (
@@ -338,7 +391,7 @@ const App: React.FC = () => {
 
             <button 
               onClick={handleFinalSubmit}
-              disabled={!files.front || !files.back}
+              disabled={!previews.front || !previews.back}
               className="w-full h-20 bg-green-600 text-white rounded-[2.5rem] font-black text-xl shadow-2xl shadow-green-100 active:scale-95 disabled:opacity-40 transition-all flex items-center justify-center gap-4"
             >
               <CheckCircle2 size={32} /> XÁC NHẬN VÀ GỬI HỒ SƠ
@@ -349,16 +402,13 @@ const App: React.FC = () => {
         {/* BƯỚC 4: THÀNH CÔNG */}
         {step === 4 && (
           <div className="glass-card p-16 rounded-[4rem] shadow-2xl flex flex-col items-center text-center space-y-10 animate-in zoom-in-90 duration-700">
-            <div className="relative">
-              <div className="absolute inset-0 bg-green-400/20 rounded-full blur-3xl animate-pulse" />
-              <div className="w-32 h-32 bg-gradient-to-tr from-green-500 to-emerald-700 text-white rounded-full flex items-center justify-center relative shadow-2xl scale-110">
-                <CheckCircle2 size={72} />
-              </div>
+            <div className="w-32 h-32 bg-gradient-to-tr from-green-500 to-emerald-700 text-white rounded-full flex items-center justify-center shadow-2xl scale-110">
+              <CheckCircle2 size={72} />
             </div>
             <div className="space-y-3">
               <h2 className="text-5xl font-black text-slate-900 leading-tight tracking-tighter">Hoàn tất!</h2>
               <p className="text-slate-500 font-bold text-lg px-6 leading-relaxed">
-                Hồ sơ của <strong>{selectedStaff?.name}</strong> đã được lưu trữ an toàn.
+                Hồ sơ của <strong>{selectedStaff?.name}</strong> đã được cập nhật thành công.
               </p>
             </div>
             <button 
