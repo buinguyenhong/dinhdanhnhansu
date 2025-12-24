@@ -288,7 +288,7 @@ const App: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen pb-20 pt-6 px-4">
+    <div className="min-h-screen pb-32 pt-6 px-4">
       <header className="max-w-lg mx-auto flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-200">
@@ -568,10 +568,15 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <footer className="fixed bottom-8 left-0 right-0 px-4 text-center">
-        <div className="max-w-xs mx-auto glass-card py-3 px-6 rounded-full inline-flex items-center gap-3 shadow-xl">
-          <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em]">Cloud Infrastructure Syncing</p>
+      <footer className="fixed bottom-6 left-0 right-0 px-4 text-center z-[10]">
+        <div className="max-w-xs mx-auto flex flex-col items-center gap-3">
+          <div className="glass-card py-3 px-6 rounded-full inline-flex items-center gap-3 shadow-xl">
+            <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em]">Cloud Infrastructure Syncing</p>
+          </div>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] opacity-60">
+            Make by <span className="text-indigo-500">BUI NGUYEN HONG</span>
+          </p>
         </div>
       </footer>
     </div>
