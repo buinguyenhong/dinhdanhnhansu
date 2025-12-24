@@ -195,7 +195,7 @@ const App: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl font-black text-slate-800 tracking-tight">BVDK Thiện Hạnh</h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Định Danh Nhân Viên</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Cập Nhật Thông Tin Hành Chính Nhân Viên</p>
           </div>
         </div>
         {step > 1 && step < 4 && (
