@@ -32,4 +32,5 @@ export interface UpdateStaffPayload {
   cccd_issuer: string;
   cccd_front_url?: string;
   cccd_back_url?: string;
+  signature_url?: string;
 }
