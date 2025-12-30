@@ -166,7 +166,7 @@ const App: React.FC = () => {
         setDepts(d);
         setProvinces(p);
       } catch (err) {
-        setError("Không thể tải danh mục từ máy chủ.");
+        setError("Không thể tải danh mục.");
       } finally {
         setIsLoading(false);
       }
@@ -288,15 +288,15 @@ const App: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen pb-32 pt-6 px-4">
-      <header className="max-w-lg mx-auto flex items-center justify-between mb-8">
+    <div className="min-h-screen pt-6 px-4 flex flex-col">
+      <header className="max-w-lg mx-auto w-full flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-200">
             <Fingerprint size={28} />
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-800 tracking-tight">BVDK THIỆN HẠNH</h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Cập Nhật Thông Tin Hành Chính Nhân Viên</p>
+            <h1 className="text-xl font-black text-slate-800 tracking-tight">Identity Hub</h1>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Employee Verification</p>
           </div>
         </div>
         {step > 1 && step < 4 && (
@@ -307,7 +307,7 @@ const App: React.FC = () => {
       </header>
 
       {isLoading && (
-        <div className="fixed inset-0 bg-white/60 backdrop-blur-md z-50 flex flex-col items-center justify-center">
+        <div className="fixed inset-0 bg-white/60 backdrop-blur-md z-[200] flex flex-col items-center justify-center">
           <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-4">
             <Loader2 className="animate-spin text-indigo-600" size={48} />
             <p className="font-black text-slate-700 uppercase tracking-widest text-xs">Đang xử lý dữ liệu...</p>
@@ -315,7 +315,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <main className="max-w-lg mx-auto">
+      <main className="max-w-lg mx-auto w-full flex-grow mb-12">
         {step < 4 && <ProgressIndicator />}
         
         {error && (
@@ -363,7 +363,7 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 max-h-[50vh] overflow-y-auto px-2 pb-10 custom-scrollbar">
+                <div className="grid grid-cols-1 gap-3 max-h-[50vh] overflow-y-auto px-2 pb-6 custom-scrollbar">
                   {filteredStaff.length > 0 ? filteredStaff.map(staff => (
                     <button
                       key={staff.id}
@@ -568,14 +568,14 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <footer className="fixed bottom-6 left-0 right-0 px-4 text-center z-[10]">
-        <div className="max-w-xs mx-auto flex flex-col items-center gap-3">
+      <footer className="w-full pb-10 px-4 text-center mt-auto">
+        <div className="max-w-xs mx-auto flex flex-col items-center gap-4">
           <div className="glass-card py-3 px-6 rounded-full inline-flex items-center gap-3 shadow-xl">
             <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
             <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em]">Cloud Infrastructure Syncing</p>
           </div>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] opacity-60">
-            Make by <span className="text-indigo-500">BUI NGUYEN HONG</span>
+            Design by <span className="text-indigo-500">Identity Hub Team</span>
           </p>
         </div>
       </footer>
