@@ -21,7 +21,14 @@ import {
   CreditCard,
   Calendar,
   ShieldCheck,
-  PenLine
+  PenLine,
+  Lock,
+  Baby,
+  Users,
+  Briefcase,
+  Home,
+  Tag,
+  Dna
 } from 'lucide-react';
 
 // --- Sub-component: SearchableSelect ---
@@ -131,6 +138,11 @@ const App: React.FC = () => {
   const [selectedDept, setSelectedDept] = useState<string>('');
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [staffSearch, setStaffSearch] = useState<string>('');
+  
+  // Password auth state
+  const [showPasswordInput, setShowPasswordInput] = useState<boolean>(false);
+  const [passwordValue, setPasswordValue] = useState<string>('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<UpdateStaffPayload>({
     phone: '',
@@ -141,6 +153,12 @@ const App: React.FC = () => {
     cccd_number: '',
     cccd_date: '',
     cccd_issuer: '',
+    birthday: '',
+    gender: '',
+    ethnicity: '',
+    place_of_birth: '',
+    hometown: '',
+    software_code: '',
   });
 
   const [files, setFiles] = useState<{ front: File | null; back: File | null; signature: File | null }>({
@@ -194,21 +212,31 @@ const App: React.FC = () => {
     }
   }, [formData.province_code]);
 
-  const handleStaffSelect = (staff: Staff) => {
+  const handleStaffClick = (staff: Staff) => {
     setSelectedStaff(staff);
-    setFormData({
-      phone: '',
-      email: '',
-      province_code: '',
-      ward_code: '',
-      address_permanent: '',
-      cccd_number: '',
-      cccd_date: '',
-      cccd_issuer: '',
-    });
-    setPreviews({ front: '', back: '', signature: '' });
-    setFiles({ front: null, back: null, signature: null });
-    setStep(2);
+    setShowPasswordInput(true);
+    setPasswordValue('');
+    setPasswordError(null);
+  };
+
+  const handleVerifyPassword = () => {
+    if (!selectedStaff) return;
+    
+    // Kiểm tra mật khẩu (hỗ trợ cả cột mk và password)
+    const correctPassword = selectedStaff.password || (selectedStaff as any).mk;
+    
+    if (passwordValue === correctPassword) {
+      setFormData(prev => ({ 
+        ...prev, 
+        software_code: selectedStaff.software_code || '',
+        phone: (selectedStaff as any).phone || '',
+        email: (selectedStaff as any).email || ''
+      }));
+      setStep(2);
+      setShowPasswordInput(false);
+    } else {
+      setPasswordError("Mật khẩu không chính xác. Vui lòng kiểm tra lại.");
+    }
   };
 
   const filteredStaff = useMemo(() => {
@@ -270,7 +298,12 @@ const App: React.FC = () => {
       formData.address_permanent && 
       formData.cccd_number && 
       formData.cccd_date && 
-      formData.cccd_issuer
+      formData.cccd_issuer &&
+      formData.birthday &&
+      formData.gender &&
+      formData.ethnicity &&
+      formData.place_of_birth &&
+      formData.hometown
     );
   };
 
@@ -311,6 +344,58 @@ const App: React.FC = () => {
           <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-4">
             <Loader2 className="animate-spin text-indigo-600" size={48} />
             <p className="font-black text-slate-700 uppercase tracking-widest text-xs">Đang xử lý dữ liệu...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Modal nhập mật khẩu */}
+      {showPasswordInput && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[250] flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="flex flex-col items-center text-center gap-4 mb-8">
+              <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-inner">
+                <Lock size={32} />
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-slate-800">Xác thực quyền hạn</h3>
+                <p className="text-xs text-slate-400 font-bold mt-1">Vui lòng nhập mật khẩu của nhân viên <br/> <span className="text-indigo-600 uppercase">{selectedStaff?.name}</span></p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                <input 
+                  type="password"
+                  className={`w-full h-14 pl-12 pr-4 bg-slate-50 border-2 rounded-2xl font-bold outline-none transition-all ${passwordError ? 'border-red-200 focus:border-red-400' : 'border-transparent focus:border-indigo-400'}`}
+                  placeholder="Nhập mật khẩu (MK)"
+                  value={passwordValue}
+                  onChange={(e) => {
+                    setPasswordValue(e.target.value);
+                    setPasswordError(null);
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleVerifyPassword()}
+                />
+              </div>
+              {passwordError && (
+                <p className="text-[10px] text-red-500 font-black uppercase text-center">{passwordError}</p>
+              )}
+              
+              <div className="flex flex-col gap-3 pt-2">
+                <button 
+                  onClick={handleVerifyPassword}
+                  className="w-full h-14 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 active:scale-95 transition-all"
+                >
+                  XÁC NHẬN
+                </button>
+                <button 
+                  onClick={() => setShowPasswordInput(false)}
+                  className="w-full h-12 bg-white text-slate-400 rounded-2xl font-black text-xs hover:text-slate-600 transition-all uppercase tracking-widest"
+                >
+                  HỦY BỎ
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -367,16 +452,26 @@ const App: React.FC = () => {
                   {filteredStaff.length > 0 ? filteredStaff.map(staff => (
                     <button
                       key={staff.id}
-                      onClick={() => handleStaffSelect(staff)}
+                      onClick={() => handleStaffClick(staff)}
                       className="w-full glass-card p-6 rounded-[2rem] flex items-center justify-between border-2 border-transparent hover:border-indigo-200 hover:bg-white active:scale-[0.98] transition-all shadow-lg group"
                     >
                       <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 bg-gradient-to-tr from-indigo-500 to-indigo-800 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                        <div className="w-14 h-14 bg-gradient-to-tr from-indigo-500 to-indigo-800 rounded-2xl flex items-center justify-center text-white shadow-lg relative">
                           <User size={26} />
+                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-lg flex items-center justify-center text-indigo-600 shadow-sm">
+                            <Briefcase size={12} />
+                          </div>
                         </div>
                         <div className="text-left">
-                          <h4 className="font-black text-slate-800 text-lg leading-none mb-1">{staff.name}</h4>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{staff.id}</p>
+                          <h4 className="font-black text-slate-800 text-lg leading-none mb-1.5">{staff.name}</h4>
+                          <div className="flex flex-col gap-0.5">
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">MÃ: {staff.id}</p>
+                            {staff.title && (
+                              <p className="text-[10px] text-indigo-500 font-black uppercase tracking-tighter flex items-center gap-1">
+                                <Tag size={10} /> {staff.title}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-indigo-50 group-hover:text-indigo-400 transition-colors">
@@ -395,21 +490,83 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* BƯỚC 2: THÔNG TIN LIÊN LẠC & CCCD */}
+        {/* BƯỚC 2: THÔNG TIN CHI TIẾT */}
         {step === 2 && selectedStaff && (
           <div className="space-y-6 animate-in slide-in-from-right-10 duration-500">
             <div className="bg-indigo-600 p-10 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl" />
-              <h2 className="text-4xl font-black mb-1 leading-tight">{selectedStaff.name}</h2>
-              <p className="text-indigo-100 text-sm font-black uppercase tracking-[0.2em] opacity-80">
-                {selectedStaff.department_name}
-              </p>
+              <div className="relative z-10">
+                <h2 className="text-4xl font-black mb-1 leading-tight tracking-tighter">{selectedStaff.name}</h2>
+                <div className="flex flex-wrap items-center gap-3">
+                   <p className="text-indigo-100 text-xs font-black uppercase tracking-[0.2em] opacity-80">
+                    {selectedStaff.department_name}
+                  </p>
+                  <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full opacity-50" />
+                  <p className="text-white text-xs font-black uppercase tracking-widest">{selectedStaff.title || 'Nhân viên'}</p>
+                </div>
+              </div>
             </div>
 
-            <div className="glass-card p-10 rounded-[3rem] shadow-2xl space-y-8">
-              {/* Địa chỉ & Liên lạc Section */}
+            <div className="glass-card p-8 rounded-[3rem] shadow-2xl space-y-10">
+              
+              {/* PHẦN 1: THÔNG TIN CÁ NHÂN MỚI */}
               <div className="space-y-6">
-                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-2">Thông tin địa chỉ & Liên lạc</p>
+                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-2 flex items-center gap-2">
+                  <User size={14} /> Thông tin cá nhân cơ bản
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase ml-3 tracking-widest">Ngày tháng năm sinh</label>
+                    <div className="relative">
+                      <Baby className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                      <input type="date" name="birthday" value={formData.birthday} onChange={handleInputChange} className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase ml-3 tracking-widest">Giới tính</label>
+                    <div className="relative">
+                      <Users className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                      <select name="gender" value={formData.gender} onChange={handleInputChange} className="w-full h-14 pl-14 pr-10 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm appearance-none">
+                        <option value="">Chọn giới tính</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                        <option value="Khác">Khác</option>
+                      </select>
+                      <ChevronRight size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 rotate-90" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="relative">
+                    <Dna className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="text" name="ethnicity" value={formData.ethnicity} onChange={handleInputChange} placeholder="Dân tộc (VD: Kinh)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                  </div>
+                  <div className="relative">
+                    <Tag className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="text" name="software_code" value={formData.software_code} onChange={handleInputChange} placeholder="Mã phần mềm (MAPM)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="relative">
+                    <Home className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="text" name="place_of_birth" value={formData.place_of_birth} onChange={handleInputChange} placeholder="Nơi sinh (Sau sát nhập)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                  </div>
+                  <div className="relative">
+                    <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="text" name="hometown" value={formData.hometown} onChange={handleInputChange} placeholder="Quê quán (Sau sát nhập)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              {/* PHẦN 2: LIÊN LẠC & ĐỊA CHỈ */}
+              <div className="space-y-6">
+                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-2 flex items-center gap-2">
+                  <Mail size={14} /> Liên lạc & Thường trú
+                </p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <SearchableSelect
@@ -431,25 +588,29 @@ const App: React.FC = () => {
                   />
                 </div>
 
-                <div className="space-y-4 pt-2">
+                <div className="space-y-4">
                   <div className="relative">
-                    <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                    <input type="text" name="address_permanent" value={formData.address_permanent} onChange={handleInputChange} placeholder="Địa chỉ thường trú (sau sát nhập)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                    <Home className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="text" name="address_permanent" value={formData.address_permanent} onChange={handleInputChange} placeholder="Địa chỉ thường trú (Sau sát nhập)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
                   </div>
-                  <div className="relative">
-                    <Phone className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                    <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Số điện thoại di động" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
-                  </div>
-                  <div className="relative">
-                    <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email cá nhân" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="relative">
+                      <Phone className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                      <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Số điện thoại di động" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                    </div>
+                    <div className="relative">
+                      <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                      <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email cá nhân" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* CCCD Details Section */}
+              {/* PHẦN 3: CCCD */}
               <div className="space-y-6">
-                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-2">Chi tiết căn cước công dân</p>
+                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-2 flex items-center gap-2">
+                  <CreditCard size={14} /> Căn cước công dân
+                </p>
                 
                 <div className="space-y-4">
                   <div className="relative">
@@ -457,22 +618,27 @@ const App: React.FC = () => {
                     <input type="number" name="cccd_number" value={formData.cccd_number} onChange={handleInputChange} placeholder="Số căn cước công dân (12 số)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                   </div>
 
-                  <div className="relative">
-                    <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                    <input type="date" name="cccd_date" value={formData.cccd_date} onChange={handleInputChange} className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase ml-3 tracking-widest">Ngày cấp CCCD</label>
+                      <div className="relative">
+                        <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                        <input type="date" name="cccd_date" value={formData.cccd_date} onChange={handleInputChange} className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                      </div>
+                    </div>
+                    
+                    <SearchableSelect
+                      label="Nơi cấp"
+                      options={[
+                        { value: "BỘ CÔNG AN", label: "BỘ CÔNG AN" },
+                        { value: "CỤC TRƯỞNG CỤC CẢNH SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI", label: "CỤC TRƯỞNG CỤC CẢNH SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI" }
+                      ]}
+                      value={formData.cccd_issuer}
+                      onChange={(val) => setFormData(prev => ({ ...prev, cccd_issuer: val }))}
+                      placeholder="Chọn Nơi cấp"
+                      icon={ShieldCheck}
+                    />
                   </div>
-
-                  <SearchableSelect
-                    label="Nơi cấp"
-                    options={[
-                      { value: "BỘ CÔNG AN", label: "BỘ CÔNG AN" },
-                      { value: "CỤC TRƯỞNG CỤC CẢNH SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI", label: "CỤC TRƯỞNG CỤC CẢNH SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI" }
-                    ]}
-                    value={formData.cccd_issuer}
-                    onChange={(val) => setFormData(prev => ({ ...prev, cccd_issuer: val }))}
-                    placeholder="Chọn Nơi cấp"
-                    icon={ShieldCheck}
-                  />
                 </div>
               </div>
 
@@ -496,7 +662,6 @@ const App: React.FC = () => {
             </div>
             
             <div className="grid grid-cols-1 gap-6">
-              {/* Phần CCCD */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[ {id: 'front' as const, label: 'CCCD Mặt Trước'}, {id: 'back' as const, label: 'CCCD Mặt Sau'} ].map(side => (
                   <div key={side.id} className="relative glass-card p-4 rounded-[2.5rem] border-2 border-dashed border-slate-200 group transition-all hover:border-indigo-400">
@@ -517,7 +682,6 @@ const App: React.FC = () => {
                 ))}
               </div>
 
-              {/* Phần Chữ Ký */}
               <div className="relative glass-card p-6 rounded-[3rem] border-2 border-dashed border-indigo-200 group transition-all hover:border-indigo-500 bg-indigo-50/30">
                 <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'signature')} className="absolute inset-0 opacity-0 z-20 cursor-pointer" />
                 <div className="aspect-[2/1] bg-white rounded-[2rem] flex flex-col items-center justify-center overflow-hidden transition-all group-hover:bg-indigo-50 shadow-md">
