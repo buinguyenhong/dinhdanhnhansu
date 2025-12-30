@@ -8,6 +8,9 @@ export interface Staff {
   id: string;
   name: string;
   department_name: string;
+  title?: string;
+  password?: string; // Mật khẩu để xác thực (MK)
+  software_code?: string; // MAPM
 }
 
 export interface Province {
@@ -30,6 +33,15 @@ export interface UpdateStaffPayload {
   cccd_number: string;
   cccd_date: string;
   cccd_issuer: string;
+  
+  // Các trường mới bổ sung
+  birthday: string;
+  gender: string;
+  ethnicity: string;
+  place_of_birth: string;
+  hometown: string;
+  software_code: string;
+  
   cccd_front_url?: string;
   cccd_back_url?: string;
   signature_url?: string;
