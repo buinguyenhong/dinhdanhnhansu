@@ -441,7 +441,7 @@ const App: React.FC = () => {
                     <input 
                       type="text"
                       className="w-full h-14 pl-14 pr-6 bg-white/50 backdrop-blur border-2 border-slate-50 rounded-[1.5rem] font-bold text-slate-700 outline-none focus:border-indigo-300 shadow-sm transition-all"
-                      placeholder="Tìm tên hoặc mã nhân viên..."
+                      placeholder="Tìm tên hoặc chức danh..."
                       value={staffSearch}
                       onChange={(e) => setStaffSearch(e.target.value)}
                     />
@@ -465,7 +465,9 @@ const App: React.FC = () => {
                         <div className="text-left">
                           <h4 className="font-black text-slate-800 text-lg leading-none mb-1.5">{staff.name}</h4>
                           <div className="flex flex-col gap-0.5">
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">MÃ: {staff.id}</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                              {staff.position || 'CHƯA CÓ CHỨC DANH'}
+                            </p>
                             {staff.title && (
                               <p className="text-[10px] text-indigo-500 font-black uppercase tracking-tighter flex items-center gap-1">
                                 <Tag size={10} /> {staff.title}
@@ -502,7 +504,7 @@ const App: React.FC = () => {
                     {selectedStaff.department_name}
                   </p>
                   <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full opacity-50" />
-                  <p className="text-white text-xs font-black uppercase tracking-widest">{selectedStaff.title || 'Nhân viên'}</p>
+                  <p className="text-white text-xs font-black uppercase tracking-widest">{selectedStaff.position || selectedStaff.title || 'Nhân viên'}</p>
                 </div>
               </div>
             </div>
