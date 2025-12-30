@@ -9,6 +9,7 @@ export interface Staff {
   name: string;
   department_name: string;
   title?: string;
+  position?: string; // Chức danh hiển thị chính
   password?: string; // Mật khẩu để xác thực (MK)
   software_code?: string; // MAPM
 }
