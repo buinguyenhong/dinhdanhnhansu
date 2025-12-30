@@ -242,7 +242,8 @@ const App: React.FC = () => {
   const filteredStaff = useMemo(() => {
     return staffList.filter(s => 
       s.name.toLowerCase().includes(staffSearch.toLowerCase()) ||
-      s.id.toLowerCase().includes(staffSearch.toLowerCase())
+      (s.id && s.id.toLowerCase().includes(staffSearch.toLowerCase())) ||
+      (s.position && s.position.toLowerCase().includes(staffSearch.toLowerCase()))
     );
   }, [staffList, staffSearch]);
 
@@ -534,7 +535,6 @@ const App: React.FC = () => {
                         <option value="">Chọn giới tính</option>
                         <option value="Nam">Nam</option>
                         <option value="Nữ">Nữ</option>
-                        <option value="Khác">Khác</option>
                       </select>
                       <ChevronRight size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 rotate-90" />
                     </div>
