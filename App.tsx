@@ -329,8 +329,8 @@ const App: React.FC = () => {
             <Fingerprint size={28} />
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-800 tracking-tight">Identity Hub</h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Employee Verification</p>
+            <h1 className="text-xl font-black text-slate-800 tracking-tight">BVĐK THIỆN HẠNH</h1>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">CẬP NHẬT THÔNG TIN HÀNH CHÍNH NHÂN VIÊN</p>
           </div>
         </div>
         {step > 1 && step < 4 && (
@@ -741,7 +741,7 @@ const App: React.FC = () => {
             <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em]">Cloud Infrastructure Syncing</p>
           </div>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] opacity-60">
-            Design by <span className="text-indigo-500">Identity Hub Team</span>
+            Make by <span className="text-indigo-500">BUI NGUYEN HONG</span>
           </p>
         </div>
       </footer>
