@@ -2,14 +2,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { Staff, Province, Ward } from './types';
 
-// Thông tin kết nối Supabase của bạn
 const supabaseUrl = 'https://sifwtbfuqutdgpvhtbkx.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpZnd0YmZ1cXV0ZGdwdmh0Ymt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY1MDE5NzcsImV4cCI6MjA4MjA3Nzk3N30.wPbvgtAlDUxzZGiwsxuc1CFoji2v-fbC7Au18-zUY2I';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export const supabaseService = {
-  // Lấy danh sách khoa (duy nhất) từ bảng staff
   getDepartments: async (): Promise<string[]> => {
     const { data, error } = await supabase
       .from('staff')
@@ -19,12 +17,10 @@ export const supabaseService = {
       console.error("Lỗi lấy khoa:", error);
       return [];
     }
-    // Lọc các giá trị trùng lặp và đảm bảo kiểu dữ liệu string[]
     const uniqueDepts = Array.from(new Set(data.map((item: any) => item.department_name as string)));
     return uniqueDepts.filter(Boolean) as string[];
   },
 
-  // Lấy nhân viên theo khoa
   getStaffByDepartment: async (deptName: string): Promise<Staff[]> => {
     const { data, error } = await supabase
       .from('staff')
@@ -38,7 +34,6 @@ export const supabaseService = {
     return (data as Staff[]) || [];
   },
 
-  // Lấy tỉnh thành
   getProvinces: async (): Promise<Province[]> => {
     const { data, error } = await supabase
       .from('provinces')
@@ -49,7 +44,6 @@ export const supabaseService = {
     return (data as Province[]) || [];
   },
 
-  // Lấy phường xã theo tỉnh
   getWards: async (provinceCode: string): Promise<Ward[]> => {
     const { data, error } = await supabase
       .from('wards')
@@ -61,7 +55,6 @@ export const supabaseService = {
     return (data as Ward[]) || [];
   },
 
-  // Cập nhật thông tin nhân viên
   saveStaffUpdate: async (staffId: string, payload: any) => {
     const { error } = await supabase
       .from('staff')
@@ -74,6 +67,15 @@ export const supabaseService = {
         cccd_number: payload.cccd_number,
         cccd_date: payload.cccd_date,
         cccd_issuer: payload.cccd_issuer,
+        
+        // Cập nhật các trường mới
+        birthday: payload.birthday,
+        gender: payload.gender,
+        ethnicity: payload.ethnicity,
+        place_of_birth: payload.place_of_birth,
+        hometown: payload.hometown,
+        software_code: payload.software_code,
+        
         cccd_front_url: payload.cccd_front_url,
         cccd_back_url: payload.cccd_back_url,
         signature_url: payload.signature_url,
