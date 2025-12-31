@@ -42,8 +42,10 @@ export interface UpdateStaffPayload {
   place_of_birth: string;
   hometown: string;
   software_code: string;
+  social_insurance_number: string; // Số BHXH
   
   cccd_front_url?: string;
   cccd_back_url?: string;
   signature_url?: string;
 }
+
