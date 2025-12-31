@@ -28,7 +28,8 @@ import {
   Briefcase,
   Home,
   Tag,
-  Dna
+  Dna,
+  FileText
 } from 'lucide-react';
 
 // --- Sub-component: SearchableSelect ---
@@ -159,6 +160,7 @@ const App: React.FC = () => {
     place_of_birth: '',
     hometown: '',
     software_code: '',
+    social_insurance_number: '',
   });
 
   const [files, setFiles] = useState<{ front: File | null; back: File | null; signature: File | null }>({
@@ -304,7 +306,8 @@ const App: React.FC = () => {
       formData.gender &&
       formData.ethnicity &&
       formData.place_of_birth &&
-      formData.hometown
+      formData.hometown &&
+      formData.social_insurance_number
     );
   };
 
@@ -329,8 +332,8 @@ const App: React.FC = () => {
             <Fingerprint size={28} />
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-800 tracking-tight">BVĐK THIỆN HẠNH</h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">CẬP NHẬT THÔNG TIN HÀNH CHÍNH NHÂN VIÊN</p>
+            <h1 className="text-xl font-black text-slate-800 tracking-tight">Identity Hub</h1>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Employee Verification</p>
           </div>
         </div>
         {step > 1 && step < 4 && (
@@ -547,12 +550,16 @@ const App: React.FC = () => {
                     <input type="text" name="ethnicity" value={formData.ethnicity} onChange={handleInputChange} placeholder="Dân tộc (VD: Kinh)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
                   </div>
                   <div className="relative">
-                    <Tag className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                    <input type="text" name="software_code" value={formData.software_code} onChange={handleInputChange} placeholder="Mã phần mềm (MAPM)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                    <FileText className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="text" name="social_insurance_number" value={formData.social_insurance_number} onChange={handleInputChange} placeholder="Số Bảo hiểm xã hội" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
                   </div>
                 </div>
 
                 <div className="space-y-4">
+                  <div className="relative">
+                    <Tag className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="text" name="software_code" value={formData.software_code} onChange={handleInputChange} placeholder="Mã phần mềm (MAPM)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                  </div>
                   <div className="relative">
                     <Home className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
                     <input type="text" name="place_of_birth" value={formData.place_of_birth} onChange={handleInputChange} placeholder="Nơi sinh (Sau sát nhập)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
@@ -741,7 +748,7 @@ const App: React.FC = () => {
             <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em]">Cloud Infrastructure Syncing</p>
           </div>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] opacity-60">
-            Make by <span className="text-indigo-500">BUI NGUYEN HONG</span>
+            Design by <span className="text-indigo-500">Identity Hub Team</span>
           </p>
         </div>
       </footer>
