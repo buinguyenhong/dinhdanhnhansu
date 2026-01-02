@@ -75,7 +75,6 @@ export const supabaseService = {
         place_of_birth: payload.place_of_birth,
         hometown: payload.hometown,
         software_code: payload.software_code,
-        social_insurance_number: payload.social_insurance_number,
         
         cccd_front_url: payload.cccd_front_url,
         cccd_back_url: payload.cccd_back_url,
