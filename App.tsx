@@ -28,8 +28,7 @@ import {
   Briefcase,
   Home,
   Tag,
-  Dna,
-  FileText
+  Dna
 } from 'lucide-react';
 
 // --- Sub-component: SearchableSelect ---
@@ -160,7 +159,6 @@ const App: React.FC = () => {
     place_of_birth: '',
     hometown: '',
     software_code: '',
-    social_insurance_number: '',
   });
 
   const [files, setFiles] = useState<{ front: File | null; back: File | null; signature: File | null }>({
@@ -267,16 +265,25 @@ const App: React.FC = () => {
   };
 
   const handleFinalSubmit = async () => {
-    if (!selectedStaff || !files.front || !files.back || !files.signature) return;
+    if (!selectedStaff || !files.front || !files.back) return;
     setIsLoading(true);
     setError(null);
 
     try {
-      const [frontUrl, backUrl, signatureUrl] = await Promise.all([
+      // Upload 2 ảnh CCCD là bắt buộc
+      const uploadPromises: Promise<string>[] = [
         storageService.uploadCCCD(files.front, `${selectedStaff.id}_cccd1`),
-        storageService.uploadCCCD(files.back, `${selectedStaff.id}_cccd2`),
-        storageService.uploadCCCD(files.signature, `${selectedStaff.id}_signature`)
-      ]);
+        storageService.uploadCCCD(files.back, `${selectedStaff.id}_cccd2`)
+      ];
+
+      const results = await Promise.all(uploadPromises);
+      const frontUrl = results[0];
+      const backUrl = results[1];
+      
+      let signatureUrl = '';
+      if (files.signature) {
+        signatureUrl = await storageService.uploadCCCD(files.signature, `${selectedStaff.id}_signature`);
+      }
 
       await supabaseService.saveStaffUpdate(selectedStaff.id, {
         ...formData,
@@ -306,8 +313,7 @@ const App: React.FC = () => {
       formData.gender &&
       formData.ethnicity &&
       formData.place_of_birth &&
-      formData.hometown &&
-      formData.social_insurance_number
+      formData.hometown
     );
   };
 
@@ -515,7 +521,7 @@ const App: React.FC = () => {
 
             <div className="glass-card p-8 rounded-[3rem] shadow-2xl space-y-10">
               
-              {/* PHẦN 1: THÔNG TIN CÁ NHÂN MỚI */}
+              {/* PHẦN 1: THÔNG TIN CÁ NHÂN */}
               <div className="space-y-6">
                 <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-2 flex items-center gap-2">
                   <User size={14} /> Thông tin cá nhân cơ bản
@@ -550,16 +556,12 @@ const App: React.FC = () => {
                     <input type="text" name="ethnicity" value={formData.ethnicity} onChange={handleInputChange} placeholder="Dân tộc (VD: Kinh)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
                   </div>
                   <div className="relative">
-                    <FileText className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                    <input type="text" name="social_insurance_number" value={formData.social_insurance_number} onChange={handleInputChange} placeholder="Số Bảo hiểm xã hội" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                    <Tag className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <input type="text" name="software_code" value={formData.software_code} onChange={handleInputChange} placeholder="Mã phần mềm (MAPM)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="relative">
-                    <Tag className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                    <input type="text" name="software_code" value={formData.software_code} onChange={handleInputChange} placeholder="Mã phần mềm (MAPM)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
-                  </div>
                   <div className="relative">
                     <Home className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
                     <input type="text" name="place_of_birth" value={formData.place_of_birth} onChange={handleInputChange} placeholder="Nơi sinh (Sau sát nhập)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
@@ -609,7 +611,7 @@ const App: React.FC = () => {
                     </div>
                     <div className="relative">
                       <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                      <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email cá nhân" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
+                      <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email cá nhân (Không bắt buộc)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
                     </div>
                   </div>
                 </div>
@@ -702,7 +704,9 @@ const App: React.FC = () => {
                         <PenLine size={32} />
                       </div>
                       <span className="text-xs font-black text-indigo-700 uppercase tracking-[0.3em]">Tải lên chữ ký cá nhân</span>
-                      <p className="text-[10px] text-indigo-400 font-bold mt-2">Ký trên giấy trắng và chụp ảnh</p>
+                      <p className="text-[10px] text-indigo-500 font-black mt-2 text-center uppercase tracking-tighter">
+                        Chỉ yêu cầu đối với nhân viên sử dụng phần mềm HIS, LIS, PAC
+                      </p>
                     </>
                   )}
                 </div>
@@ -711,7 +715,7 @@ const App: React.FC = () => {
 
             <button 
               onClick={handleFinalSubmit}
-              disabled={!previews.front || !previews.back || !previews.signature}
+              disabled={!previews.front || !previews.back}
               className="w-full h-20 bg-green-600 text-white rounded-[2.5rem] font-black text-xl shadow-2xl shadow-green-100 active:scale-95 disabled:opacity-40 transition-all flex items-center justify-center gap-4"
             >
               <CheckCircle2 size={32} /> XÁC NHẬN VÀ GỬI HỒ SƠ
