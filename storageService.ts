@@ -1,7 +1,7 @@
 
 /**
  * CLOUDINARY SERVICE CONFIGURATION
- * Đã cập nhật với thông tin dqn6opztb và nhan_vien_preset.
+ * Cập nhật để đảm bảo tính duy nhất cho mỗi file tải lên.
  */
 
 const CLOUD_NAME = 'dqn6opztb'; 
@@ -14,11 +14,12 @@ export const storageService = {
     formData.append('upload_preset', UPLOAD_PRESET);
     
     /**
-     * Sử dụng public_id để đặt tên file theo format: [MãNV]_cccd1
-     * Lưu ý: Trong Cloudinary settings, bạn cần chọn "Use the filename... as public ID" 
-     * và TẮT "Unique suffix" để tên file được giữ nguyên.
+     * Để tránh ghi đè (overwrite) và lỗi cache ảnh cũ trên trình duyệt,
+     * chúng ta thêm timestamp vào public_id.
+     * Kết quả sẽ có dạng: [MãNV]_cccd1_1709123456789
      */
-    formData.append('public_id', fileName); 
+    const uniquePublicId = `${fileName}_${Date.now()}`;
+    formData.append('public_id', uniquePublicId); 
 
     try {
       const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
