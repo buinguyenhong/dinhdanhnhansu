@@ -583,6 +583,11 @@ const App: React.FC = () => {
 
       <footer className="w-full pb-10 text-center mt-auto opacity-60">
         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">Identity Hub Infrastructure Sync</p>
+        </div>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] opacity-60">
+            Make by <span className="text-indigo-500">BUI NGUYEN HONG</span>
+          </p>
+        </div>
       </footer>
     </div>
   );
