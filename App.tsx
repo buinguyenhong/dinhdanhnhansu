@@ -98,7 +98,6 @@ const DateInput: React.FC<DateInputProps> = ({ label, name, value, onChange, ico
           maxLength={10}
           className="w-full h-14 pl-14 pr-12 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm"
         />
-        {/* Input date ẩn để dùng trình chọn lịch native */}
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
           <input
             type="date"
@@ -221,7 +220,6 @@ const App: React.FC = () => {
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [staffSearch, setStaffSearch] = useState<string>('');
   
-  // Password auth state
   const [showPasswordInput, setShowPasswordInput] = useState<boolean>(false);
   const [passwordValue, setPasswordValue] = useState<string>('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
@@ -303,10 +301,7 @@ const App: React.FC = () => {
 
   const handleVerifyPassword = () => {
     if (!selectedStaff) return;
-    
-    // Kiểm tra mật khẩu (hỗ trợ cả cột mk và password)
     const correctPassword = selectedStaff.password || (selectedStaff as any).mk;
-    
     if (passwordValue === correctPassword) {
       setFormData(prev => ({ 
         ...prev, 
@@ -317,15 +312,14 @@ const App: React.FC = () => {
       setStep(2);
       setShowPasswordInput(false);
     } else {
-      setPasswordError("Mật khẩu không chính xác. Vui lòng kiểm tra lại.");
+      setPasswordError("Mật khẩu không chính xác.");
     }
   };
 
   const filteredStaff = useMemo(() => {
     return staffList.filter(s => 
       s.name.toLowerCase().includes(staffSearch.toLowerCase()) ||
-      (s.id && s.id.toLowerCase().includes(staffSearch.toLowerCase())) ||
-      (s.position && s.position.toLowerCase().includes(staffSearch.toLowerCase()))
+      (s.id && s.id.toLowerCase().includes(staffSearch.toLowerCase()))
     );
   }, [staffList, staffSearch]);
 
@@ -356,7 +350,6 @@ const App: React.FC = () => {
     setError(null);
 
     try {
-      // Upload 2 ảnh CCCD là bắt buộc
       const uploadPromises: Promise<string>[] = [
         storageService.uploadCCCD(files.front, `${selectedStaff.id}_cccd1`),
         storageService.uploadCCCD(files.back, `${selectedStaff.id}_cccd2`)
@@ -403,33 +396,20 @@ const App: React.FC = () => {
     );
   };
 
-  const ProgressIndicator = () => (
-    <div className="flex justify-between items-center mb-10 px-2">
-      {[1, 2, 3].map((s) => (
-        <div key={s} className="flex flex-col items-center gap-2">
-          <div className={`h-1.5 w-24 rounded-full transition-all duration-700 ${step >= s ? 'bg-indigo-600' : 'bg-slate-200'}`} />
-          <span className={`text-[10px] font-black uppercase tracking-tighter ${step >= s ? 'text-indigo-600' : 'text-slate-400'}`}>
-            BƯỚC {s}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-
   return (
     <div className="min-h-screen pt-6 px-4 flex flex-col">
       <header className="max-w-lg mx-auto w-full flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-200">
+          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl">
             <Fingerprint size={28} />
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-800 tracking-tight">BVĐK THIỆN HẠNH</h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">CẬP NHẬT THÔNG TIN HÀNH CHÍNH NHÂN VIÊN</p>
+            <h1 className="text-xl font-black text-slate-800 tracking-tight">Identity Hub</h1>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Employee Verification</p>
           </div>
         </div>
         {step > 1 && step < 4 && (
-          <button onClick={() => setStep(step - 1)} className="w-11 h-11 glass-card rounded-2xl flex items-center justify-center text-slate-600 hover:text-indigo-600 transition-all">
+          <button onClick={() => setStep(step - 1)} className="w-11 h-11 glass-card rounded-2xl flex items-center justify-center text-slate-600">
             <ArrowLeft size={20} />
           </button>
         )}
@@ -437,84 +417,35 @@ const App: React.FC = () => {
 
       {isLoading && (
         <div className="fixed inset-0 bg-white/60 backdrop-blur-md z-[200] flex flex-col items-center justify-center">
-          <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-4">
-            <Loader2 className="animate-spin text-indigo-600" size={48} />
-            <p className="font-black text-slate-700 uppercase tracking-widest text-xs">Đang xử lý dữ liệu...</p>
-          </div>
+          <Loader2 className="animate-spin text-indigo-600 mb-4" size={48} />
+          <p className="font-black text-slate-700 uppercase tracking-widest text-xs">Đang xử lý...</p>
         </div>
       )}
 
-      {/* Modal nhập mật khẩu */}
       {showPasswordInput && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[250] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 duration-300">
-            <div className="flex flex-col items-center text-center gap-4 mb-8">
-              <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-inner">
-                <Lock size={32} />
-              </div>
-              <div>
-                <h3 className="text-xl font-black text-slate-800">Xác thực quyền hạn</h3>
-                <p className="text-xs text-slate-400 font-bold mt-1">Vui lòng nhập mật khẩu của nhân viên <br/> <span className="text-indigo-600 uppercase">{selectedStaff?.name}</span></p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                <input 
-                  type="password"
-                  className={`w-full h-14 pl-12 pr-4 bg-slate-50 border-2 rounded-2xl font-bold outline-none transition-all ${passwordError ? 'border-red-200 focus:border-red-400' : 'border-transparent focus:border-indigo-400'}`}
-                  placeholder="Nhập mật khẩu (MK)"
-                  value={passwordValue}
-                  onChange={(e) => {
-                    setPasswordValue(e.target.value);
-                    setPasswordError(null);
-                  }}
-                  onKeyDown={(e) => e.key === 'Enter' && handleVerifyPassword()}
-                />
-              </div>
-              {passwordError && (
-                <p className="text-[10px] text-red-500 font-black uppercase text-center">{passwordError}</p>
-              )}
-              
-              <div className="flex flex-col gap-3 pt-2">
-                <button 
-                  onClick={handleVerifyPassword}
-                  className="w-full h-14 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 active:scale-95 transition-all"
-                >
-                  XÁC NHẬN
-                </button>
-                <button 
-                  onClick={() => setShowPasswordInput(false)}
-                  className="w-full h-12 bg-white text-slate-400 rounded-2xl font-black text-xs hover:text-slate-600 transition-all uppercase tracking-widest"
-                >
-                  HỦY BỎ
-                </button>
-              </div>
-            </div>
+          <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl">
+            <h3 className="text-xl font-black text-center mb-6">Xác thực quyền hạn</h3>
+            <input 
+              type="password"
+              className="w-full h-14 px-6 bg-slate-50 border-2 rounded-2xl font-bold mb-4 outline-none focus:border-indigo-400"
+              placeholder="Nhập mật khẩu (MK)"
+              value={passwordValue}
+              onChange={(e) => setPasswordValue(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleVerifyPassword()}
+            />
+            {passwordError && <p className="text-red-500 text-[10px] font-black uppercase text-center mb-4">{passwordError}</p>}
+            <button onClick={handleVerifyPassword} className="w-full h-14 bg-indigo-600 text-white rounded-2xl font-black mb-3">XÁC NHẬN</button>
+            <button onClick={() => setShowPasswordInput(false)} className="w-full h-12 text-slate-400 font-black uppercase text-xs">HỦY BỎ</button>
           </div>
         </div>
       )}
 
       <main className="max-w-lg mx-auto w-full flex-grow mb-12">
-        {step < 4 && <ProgressIndicator />}
-        
-        {error && (
-          <div className="mb-8 bg-red-50 border-l-4 border-red-500 p-5 rounded-r-[1.5rem] text-red-700 flex items-center gap-4 animate-in fade-in">
-            <AlertCircle size={24} />
-            <div>
-              <p className="text-sm font-black uppercase tracking-tight">Đã xảy ra lỗi</p>
-              <p className="text-xs font-semibold opacity-80">{error}</p>
-            </div>
-          </div>
-        )}
-
-        {/* BƯỚC 1: CHỌN NHÂN VIÊN */}
         {step === 1 && (
-          <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
+          <div className="space-y-6">
             <div className="glass-card p-10 rounded-[3rem] shadow-2xl">
-              <h2 className="text-3xl font-black text-slate-800 mb-8 tracking-tighter">Bắt đầu xác thực</h2>
-              
+              <h2 className="text-3xl font-black mb-8 tracking-tighter">Bắt đầu xác thực</h2>
               <SearchableSelect
                 label="Phòng ban / Khoa"
                 options={depts.map(d => ({ value: d, label: d }))}
@@ -524,323 +455,134 @@ const App: React.FC = () => {
                 icon={Building2}
               />
             </div>
-
             {selectedDept && (
-              <div className="space-y-4 animate-in slide-in-from-bottom-8 duration-500">
-                <div className="flex items-center justify-between px-5">
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Danh sách nhân viên</p>
+              <div className="space-y-3">
+                <div className="relative px-2">
+                  <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                  <input 
+                    type="text"
+                    className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.5rem] font-bold outline-none focus:border-indigo-300 shadow-sm"
+                    placeholder="Tìm tên nhân viên..."
+                    value={staffSearch}
+                    onChange={(e) => setStaffSearch(e.target.value)}
+                  />
                 </div>
-                
-                <div className="px-2">
-                  <div className="relative">
-                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                    <input 
-                      type="text"
-                      className="w-full h-14 pl-14 pr-6 bg-white/50 backdrop-blur border-2 border-slate-50 rounded-[1.5rem] font-bold text-slate-700 outline-none focus:border-indigo-300 shadow-sm transition-all"
-                      placeholder="Tìm tên hoặc chức danh..."
-                      value={staffSearch}
-                      onChange={(e) => setStaffSearch(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3 max-h-[50vh] overflow-y-auto px-2 pb-6 custom-scrollbar">
-                  {filteredStaff.length > 0 ? filteredStaff.map(staff => (
-                    <button
-                      key={staff.id}
-                      onClick={() => handleStaffClick(staff)}
-                      className="w-full glass-card p-6 rounded-[2rem] flex items-center justify-between border-2 border-transparent hover:border-indigo-200 hover:bg-white active:scale-[0.98] transition-all shadow-lg group"
-                    >
-                      <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 bg-gradient-to-tr from-indigo-500 to-indigo-800 rounded-2xl flex items-center justify-center text-white shadow-lg relative">
-                          <User size={26} />
-                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-lg flex items-center justify-center text-indigo-600 shadow-sm">
-                            <Briefcase size={12} />
-                          </div>
-                        </div>
-                        <div className="text-left">
-                          <h4 className="font-black text-slate-800 text-lg leading-none mb-1.5">{staff.name}</h4>
-                          <div className="flex flex-col gap-0.5">
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                              {staff.position || 'CHƯA CÓ CHỨC DANH'}
-                            </p>
-                            {staff.title && (
-                              <p className="text-[10px] text-indigo-500 font-black uppercase tracking-tighter flex items-center gap-1">
-                                <Tag size={10} /> {staff.title}
-                              </p>
-                            )}
-                          </div>
+                <div className="grid gap-3 max-h-[50vh] overflow-y-auto px-2 custom-scrollbar">
+                  {filteredStaff.map(staff => (
+                    <button key={staff.id} onClick={() => handleStaffClick(staff)} className="w-full glass-card p-6 rounded-[2rem] flex items-center justify-between border-2 border-transparent hover:border-indigo-200 transition-all shadow-lg">
+                      <div className="flex items-center gap-5 text-left">
+                        <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white"><User size={26} /></div>
+                        <div>
+                          <h4 className="font-black text-slate-800 text-lg">{staff.name}</h4>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{staff.position || 'Nhân viên'}</p>
                         </div>
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-indigo-50 group-hover:text-indigo-400 transition-colors">
-                        <ChevronRight size={20} />
-                      </div>
+                      <ChevronRight size={20} className="text-slate-300" />
                     </button>
-                  )) : (
-                    <div className="p-16 glass-card rounded-[2rem] text-center flex flex-col items-center gap-4 text-slate-400">
-                       <Search size={32} className="opacity-20" />
-                       <p className="font-bold italic">Không tìm thấy nhân viên phù hợp</p>
-                    </div>
-                  )}
+                  ))}
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {/* BƯỚC 2: THÔNG TIN CHI TIẾT */}
         {step === 2 && selectedStaff && (
-          <div className="space-y-6 animate-in slide-in-from-right-10 duration-500">
-            <div className="bg-indigo-600 p-10 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl" />
-              <div className="relative z-10">
-                <h2 className="text-4xl font-black mb-1 leading-tight tracking-tighter">{selectedStaff.name}</h2>
-                <div className="flex flex-wrap items-center gap-3">
-                   <p className="text-indigo-100 text-xs font-black uppercase tracking-[0.2em] opacity-80">
-                    {selectedStaff.department_name}
-                  </p>
-                  <span className="w-1.5 h-1.5 bg-indigo-300 rounded-full opacity-50" />
-                  <p className="text-white text-xs font-black uppercase tracking-widest">{selectedStaff.position || selectedStaff.title || 'Nhân viên'}</p>
-                </div>
-              </div>
+          <div className="space-y-6">
+            <div className="bg-indigo-600 p-10 rounded-[3.5rem] text-white shadow-2xl">
+              <h2 className="text-4xl font-black mb-1 tracking-tighter">{selectedStaff.name}</h2>
+              <p className="text-indigo-100 text-xs font-black uppercase tracking-widest">{selectedStaff.department_name}</p>
             </div>
-
             <div className="glass-card p-8 rounded-[3rem] shadow-2xl space-y-10">
-              
-              {/* PHẦN 1: THÔNG TIN CÁ NHÂN */}
               <div className="space-y-6">
-                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-2 flex items-center gap-2">
-                  <User size={14} /> Thông tin cá nhân cơ bản
-                </p>
-                
+                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b pb-2 flex items-center gap-2"><User size={14} /> Thông tin cá nhân</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <DateInput
-                    label="Ngày tháng năm sinh"
-                    name="birthday"
-                    value={formData.birthday}
-                    onChange={handleDateChange}
-                    icon={Baby}
-                  />
-
+                  <DateInput label="Ngày tháng năm sinh" name="birthday" value={formData.birthday} onChange={handleDateChange} icon={Baby} />
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase ml-3 tracking-widest">Giới tính</label>
-                    <div className="relative">
-                      <Users className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                      <select name="gender" value={formData.gender} onChange={handleInputChange} className="w-full h-14 pl-14 pr-10 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm appearance-none">
-                        <option value="">Chọn giới tính</option>
-                        <option value="Nam">Nam</option>
-                        <option value="Nữ">Nữ</option>
-                      </select>
-                      <ChevronRight size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 rotate-90" />
-                    </div>
+                    <select name="gender" value={formData.gender} onChange={handleInputChange} className="w-full h-14 px-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 text-sm appearance-none">
+                      <option value="">Chọn giới tính</option>
+                      <option value="Nam">Nam</option>
+                      <option value="Nữ">Nữ</option>
+                    </select>
                   </div>
                 </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="relative">
-                    <Dna className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                    <input type="text" name="ethnicity" value={formData.ethnicity} onChange={handleInputChange} placeholder="Dân tộc (VD: Kinh)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
-                  </div>
-                  <div className="relative">
-                    <Tag className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                    <input type="text" name="software_code" value={formData.software_code} onChange={handleInputChange} placeholder="Mã phần mềm (MAPM)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
-                  </div>
+                  <input type="text" name="ethnicity" value={formData.ethnicity} onChange={handleInputChange} placeholder="Dân tộc (VD: Kinh)" className="w-full h-14 px-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none focus:border-indigo-400 text-sm" />
+                  <input type="text" name="software_code" value={formData.software_code} onChange={handleInputChange} placeholder="Mã phần mềm (MAPM)" className="w-full h-14 px-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none focus:border-indigo-400 text-sm" />
                 </div>
-
-                <div className="space-y-4">
-                  <div className="relative">
-                    <Home className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                    <input type="text" name="place_of_birth" value={formData.place_of_birth} onChange={handleInputChange} placeholder="Nơi sinh (Sau sát nhập)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
-                  </div>
-                  <div className="relative">
-                    <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                    <input type="text" name="hometown" value={formData.hometown} onChange={handleInputChange} placeholder="Quê quán (Sau sát nhập)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
-                  </div>
-                </div>
+                <input type="text" name="place_of_birth" value={formData.place_of_birth} onChange={handleInputChange} placeholder="Nơi sinh" className="w-full h-14 px-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none focus:border-indigo-400 text-sm" />
+                <input type="text" name="hometown" value={formData.hometown} onChange={handleInputChange} placeholder="Quê quán" className="w-full h-14 px-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none focus:border-indigo-400 text-sm" />
               </div>
 
-              {/* PHẦN 2: LIÊN LẠC & ĐỊA CHỈ */}
               <div className="space-y-6">
-                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-2 flex items-center gap-2">
-                  <Mail size={14} /> Liên lạc & Thường trú
-                </p>
-                
+                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b pb-2 flex items-center gap-2"><Mail size={14} /> Liên lạc & Thường trú</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <SearchableSelect
-                    label="Tỉnh / Thành phố"
-                    options={provinces.map(p => ({ value: p.code, label: p.name }))}
-                    value={formData.province_code}
-                    onChange={(val) => setFormData(prev => ({ ...prev, province_code: val, ward_code: '' }))}
-                    placeholder="Chọn Tỉnh"
-                    icon={MapPin}
-                  />
-                  <SearchableSelect
-                    label="Quận / Huyện / Xã"
-                    options={wards.map(w => ({ value: w.code, label: w.name }))}
-                    value={formData.ward_code}
-                    onChange={(val) => setFormData(prev => ({ ...prev, ward_code: val }))}
-                    placeholder="Chọn Xã/Phường"
-                    icon={MapPin}
-                    disabled={!formData.province_code}
-                  />
+                  <SearchableSelect label="Tỉnh / Thành phố" options={provinces.map(p => ({ value: p.code, label: p.name }))} value={formData.province_code} onChange={(val) => setFormData(prev => ({ ...prev, province_code: val, ward_code: '' }))} placeholder="Chọn Tỉnh" icon={MapPin} />
+                  <SearchableSelect label="Xã / Phường" options={wards.map(w => ({ value: w.code, label: w.name }))} value={formData.ward_code} onChange={(val) => setFormData(prev => ({ ...prev, ward_code: val }))} placeholder="Chọn Xã" icon={MapPin} disabled={!formData.province_code} />
                 </div>
-
-                <div className="space-y-4">
-                  <div className="relative">
-                    <Home className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                    <input type="text" name="address_permanent" value={formData.address_permanent} onChange={handleInputChange} placeholder="Địa chỉ thường trú (Sau sát nhập)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="relative">
-                      <Phone className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                      <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Số điện thoại di động" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
-                    </div>
-                    <div className="relative">
-                      <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                      <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email cá nhân (Không bắt buộc)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
-                    </div>
-                  </div>
+                <input type="text" name="address_permanent" value={formData.address_permanent} onChange={handleInputChange} placeholder="Địa chỉ chi tiết" className="w-full h-14 px-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none focus:border-indigo-400 text-sm" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Số điện thoại" className="w-full h-14 px-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none focus:border-indigo-400 text-sm" />
+                  <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email (Không bắt buộc)" className="w-full h-14 px-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none focus:border-indigo-400 text-sm" />
                 </div>
               </div>
 
-              {/* PHẦN 3: CCCD */}
               <div className="space-y-6">
-                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b border-indigo-100 pb-2 flex items-center gap-2">
-                  <CreditCard size={14} /> Căn cước công dân
-                </p>
-                
-                <div className="space-y-4">
-                  <div className="relative">
-                    <CreditCard className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                    <input type="number" name="cccd_number" value={formData.cccd_number} onChange={handleInputChange} placeholder="Số căn cước công dân (12 số)" className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <DateInput
-                      label="Ngày cấp CCCD"
-                      name="cccd_date"
-                      value={formData.cccd_date}
-                      onChange={handleDateChange}
-                      icon={Calendar}
-                    />
-                    
-                    <SearchableSelect
-                      label="Nơi cấp"
-                      options={[
-                        { value: "BỘ CÔNG AN", label: "BỘ CÔNG AN" },
-                        { value: "CỤC TRƯỞNG CỤC CẢNH SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI", label: "CỤC TRƯỞNG CỤC CẢNH SÁT QUẢN LÝ HÀNH CHÍNH VỀ TRẬT TỰ XÃ HỘI" }
-                      ]}
-                      value={formData.cccd_issuer}
-                      onChange={(val) => setFormData(prev => ({ ...prev, cccd_issuer: val }))}
-                      placeholder="Chọn Nơi cấp"
-                      icon={ShieldCheck}
-                    />
-                  </div>
+                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b pb-2 flex items-center gap-2"><CreditCard size={14} /> CCCD</p>
+                <input type="number" name="cccd_number" value={formData.cccd_number} onChange={handleInputChange} placeholder="Số CCCD (12 số)" className="w-full h-14 px-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none focus:border-indigo-400 text-sm" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <DateInput label="Ngày cấp CCCD" name="cccd_date" value={formData.cccd_date} onChange={handleDateChange} icon={Calendar} />
+                  <SearchableSelect label="Nơi cấp" options={[{ value: "BỘ CÔNG AN", label: "BỘ CÔNG AN" }, { value: "CỤC CS QLHC", label: "CỤC CS QLHC" }]} value={formData.cccd_issuer} onChange={(val) => setFormData(prev => ({ ...prev, cccd_issuer: val }))} placeholder="Chọn Nơi cấp" icon={ShieldCheck} />
                 </div>
               </div>
 
-              <button 
-                onClick={() => setStep(3)}
-                disabled={!isStep2Valid()}
-                className="w-full h-18 bg-indigo-600 text-white rounded-[1.8rem] font-black text-lg shadow-2xl shadow-indigo-100 active:scale-95 disabled:opacity-40 transition-all flex items-center justify-center gap-3"
-              >
-                Tiếp tục: Hồ sơ hình ảnh <ChevronRight size={24} />
+              <button onClick={() => setStep(3)} disabled={!isStep2Valid()} className="w-full h-18 bg-indigo-600 text-white rounded-[1.8rem] font-black text-lg disabled:opacity-40 transition-all flex items-center justify-center gap-3 shadow-xl shadow-indigo-100">
+                Tiếp tục <ChevronRight size={24} />
               </button>
             </div>
           </div>
         )}
 
-        {/* BƯỚC 3: TẢI ẢNH CCCD & CHỮ KÝ */}
         {step === 3 && selectedStaff && (
-          <div className="space-y-8 animate-in slide-in-from-right-10 duration-500">
-            <div className="text-center space-y-2">
-              <h3 className="text-3xl font-black text-slate-800 tracking-tighter">Hình ảnh hồ sơ</h3>
-              <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">Tải lên CCCD và Chữ ký cá nhân</p>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[ {id: 'front' as const, label: 'CCCD Mặt Trước'}, {id: 'back' as const, label: 'CCCD Mặt Sau'} ].map(side => (
-                  <div key={side.id} className="relative glass-card p-4 rounded-[2.5rem] border-2 border-dashed border-slate-200 group transition-all hover:border-indigo-400">
-                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, side.id)} className="absolute inset-0 opacity-0 z-20 cursor-pointer" />
-                    <div className="aspect-[1.6/1] bg-slate-50 rounded-[2rem] flex flex-col items-center justify-center overflow-hidden transition-all group-hover:bg-indigo-50 shadow-inner">
-                      {previews[side.id] ? (
-                        <img src={previews[side.id]} className="w-full h-full object-cover animate-in fade-in zoom-in-110 duration-700" alt={side.label} />
-                      ) : (
-                        <>
-                          <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-500 shadow-lg mb-2">
-                            <Camera size={28} />
-                          </div>
-                          <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em]">{side.label}</span>
-                        </>
-                      )}
-                    </div>
+          <div className="space-y-8">
+            <div className="text-center"><h3 className="text-3xl font-black text-slate-800 tracking-tighter">Hình ảnh hồ sơ</h3></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[ {id: 'front' as const, label: 'CCCD Mặt Trước'}, {id: 'back' as const, label: 'CCCD Mặt Sau'} ].map(side => (
+                <div key={side.id} className="relative glass-card p-4 rounded-[2.5rem] border-2 border-dashed border-slate-200 group transition-all hover:border-indigo-400">
+                  <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, side.id)} className="absolute inset-0 opacity-0 z-20 cursor-pointer" />
+                  <div className="aspect-[1.6/1] bg-slate-50 rounded-[2rem] flex flex-col items-center justify-center overflow-hidden">
+                    {previews[side.id] ? <img src={previews[side.id]} className="w-full h-full object-cover" /> : <div className="text-center text-indigo-500 font-black text-[10px] uppercase"><Camera size={28} className="mx-auto mb-2" />{side.label}</div>}
                   </div>
-                ))}
-              </div>
-
-              <div className="relative glass-card p-6 rounded-[3rem] border-2 border-dashed border-indigo-200 group transition-all hover:border-indigo-500 bg-indigo-50/30">
-                <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'signature')} className="absolute inset-0 opacity-0 z-20 cursor-pointer" />
-                <div className="aspect-[2/1] bg-white rounded-[2rem] flex flex-col items-center justify-center overflow-hidden transition-all group-hover:bg-indigo-50 shadow-md">
-                  {previews.signature ? (
-                    <img src={previews.signature} className="w-full h-full object-contain p-4 animate-in fade-in zoom-in-110 duration-700" alt="Chữ ký" />
-                  ) : (
-                    <>
-                      <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white shadow-xl mb-3">
-                        <PenLine size={32} />
-                      </div>
-                      <span className="text-xs font-black text-indigo-700 uppercase tracking-[0.3em]">Tải lên chữ ký cá nhân</span>
-                      <p className="text-[10px] text-indigo-500 font-black mt-2 text-center uppercase tracking-tighter">
-                        Chỉ yêu cầu đối với nhân viên sử dụng phần mềm HIS, LIS, PAC
-                      </p>
-                    </>
-                  )}
                 </div>
+              ))}
+            </div>
+            <div className="relative glass-card p-6 rounded-[3rem] border-2 border-dashed border-indigo-200 bg-indigo-50/30">
+              <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'signature')} className="absolute inset-0 opacity-0 z-20 cursor-pointer" />
+              <div className="aspect-[2/1] bg-white rounded-[2rem] flex flex-col items-center justify-center overflow-hidden shadow-md">
+                {previews.signature ? <img src={previews.signature} className="w-full h-full object-contain p-4" /> : 
+                  <div className="text-center px-6">
+                    <PenLine size={32} className="mx-auto mb-3 text-indigo-600" />
+                    <span className="text-xs font-black text-indigo-700 uppercase tracking-widest block">Chữ ký cá nhân</span>
+                    <p className="text-[10px] text-indigo-400 font-bold mt-2 uppercase">Chỉ yêu cầu đối với nhân viên sử dụng phần mềm HIS, LIS, PAC</p>
+                  </div>
+                }
               </div>
             </div>
-
-            <button 
-              onClick={handleFinalSubmit}
-              disabled={!previews.front || !previews.back}
-              className="w-full h-20 bg-green-600 text-white rounded-[2.5rem] font-black text-xl shadow-2xl shadow-green-100 active:scale-95 disabled:opacity-40 transition-all flex items-center justify-center gap-4"
-            >
-              <CheckCircle2 size={32} /> XÁC NHẬN VÀ GỬI HỒ SƠ
-            </button>
+            <button onClick={handleFinalSubmit} disabled={!previews.front || !previews.back} className="w-full h-20 bg-green-600 text-white rounded-[2.5rem] font-black text-xl shadow-2xl shadow-green-100 disabled:opacity-40">XÁC NHẬN VÀ GỬI HỒ SƠ</button>
           </div>
         )}
 
-        {/* BƯỚC 4: THÀNH CÔNG */}
         {step === 4 && (
-          <div className="glass-card p-16 rounded-[4rem] shadow-2xl flex flex-col items-center text-center space-y-10 animate-in zoom-in-90 duration-700">
-            <div className="w-32 h-32 bg-gradient-to-tr from-green-500 to-emerald-700 text-white rounded-full flex items-center justify-center shadow-2xl scale-110">
-              <CheckCircle2 size={72} />
-            </div>
-            <div className="space-y-3">
-              <h2 className="text-5xl font-black text-slate-900 leading-tight tracking-tighter">Hoàn tất!</h2>
-              <p className="text-slate-500 font-bold text-lg px-6 leading-relaxed">
-                Hồ sơ của <strong>{selectedStaff?.name}</strong> đã được cập nhật thành công.
-              </p>
-            </div>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="w-full h-16 bg-slate-900 text-white rounded-[1.5rem] font-black uppercase tracking-widest hover:bg-black transition-all shadow-2xl"
-            >
-              Về Trang Chủ
-            </button>
+          <div className="glass-card p-16 rounded-[4rem] shadow-2xl flex flex-col items-center text-center space-y-10">
+            <div className="w-32 h-32 bg-green-500 text-white rounded-full flex items-center justify-center shadow-2xl scale-110"><CheckCircle2 size={72} /></div>
+            <h2 className="text-5xl font-black text-slate-900 leading-tight">Hoàn tất!</h2>
+            <button onClick={() => window.location.reload()} className="w-full h-16 bg-slate-900 text-white rounded-[1.5rem] font-black uppercase tracking-widest">Về Trang Chủ</button>
           </div>
         )}
       </main>
 
-      <footer className="w-full pb-10 px-4 text-center mt-auto">
-        <div className="max-w-xs mx-auto flex flex-col items-center gap-4">
-          <div className="glass-card py-3 px-6 rounded-full inline-flex items-center gap-3 shadow-xl">
-            <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em]">Cloud Infrastructure Syncing</p>
-          </div>
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] opacity-60">
-            Make by <span className="text-indigo-500">BUI NGUYEN HONG</span>
-          </p>
-        </div>
+      <footer className="w-full pb-10 text-center mt-auto opacity-60">
+        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">Identity Hub Infrastructure Sync</p>
       </footer>
     </div>
   );
