@@ -510,8 +510,8 @@ const App: React.FC = () => {
                   <input type="text" name="ethnicity" value={formData.ethnicity} onChange={handleInputChange} placeholder="Dân tộc (VD: Kinh)" className="w-full h-14 px-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none focus:border-indigo-400 text-sm" />
                   <input type="text" name="software_code" value={formData.software_code} onChange={handleInputChange} placeholder="Mã phần mềm (MAPM)" className="w-full h-14 px-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none focus:border-indigo-400 text-sm" />
                 </div>
-                <input type="text" name="place_of_birth" value={formData.place_of_birth} onChange={handleInputChange} placeholder="Nơi sinh" className="w-full h-14 px-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none focus:border-indigo-400 text-sm" />
-                <input type="text" name="hometown" value={formData.hometown} onChange={handleInputChange} placeholder="Quê quán" className="w-full h-14 px-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none focus:border-indigo-400 text-sm" />
+                <input type="text" name="place_of_birth" value={formData.place_of_birth} onChange={handleInputChange} placeholder="Nơi sinh (sau sát nhập)" className="w-full h-14 px-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none focus:border-indigo-400 text-sm" />
+                <input type="text" name="hometown" value={formData.hometown} onChange={handleInputChange} placeholder="Quê quán (sau sát nhập)" className="w-full h-14 px-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none focus:border-indigo-400 text-sm" />
               </div>
 
               <div className="space-y-6">
@@ -581,9 +581,12 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <footer className="w-full pb-10 text-center mt-auto opacity-60">
-        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">Identity Hub Infrastructure Sync</p>
-        </div>
+      <footer className="w-full pb-10 px-4 text-center mt-auto">
+        <div className="max-w-xs mx-auto flex flex-col items-center gap-4">
+          <div className="glass-card py-3 px-6 rounded-full inline-flex items-center gap-3 shadow-xl">
+            <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em]">Cloud Infrastructure Syncing</p>
+          </div>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] opacity-60">
             Make by <span className="text-indigo-500">BUI NGUYEN HONG</span>
           </p>
