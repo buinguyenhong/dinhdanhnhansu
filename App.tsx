@@ -31,6 +31,88 @@ import {
   Dna
 } from 'lucide-react';
 
+// --- Helper Functions for Date Handling ---
+const formatDisplayDate = (isoDate: string) => {
+  if (!isoDate) return '';
+  const [y, m, d] = isoDate.split('-');
+  return `${d}/${m}/${y}`;
+};
+
+const parseToISODate = (displayDate: string) => {
+  const parts = displayDate.split('/');
+  if (parts.length !== 3) return '';
+  const [d, m, y] = parts;
+  if (d.length !== 2 || m.length !== 2 || y.length !== 4) return '';
+  return `${y}-${m}-${d}`;
+};
+
+// --- Sub-component: DateInput ---
+interface DateInputProps {
+  label: string;
+  name: string;
+  value: string; // YYYY-MM-DD
+  onChange: (name: string, value: string) => void;
+  icon: React.ElementType;
+}
+
+const DateInput: React.FC<DateInputProps> = ({ label, name, value, onChange, icon: Icon }) => {
+  const [inputValue, setInputValue] = useState(formatDisplayDate(value));
+
+  useEffect(() => {
+    setInputValue(formatDisplayDate(value));
+  }, [value]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/\D/g, ''); // Chỉ lấy số
+    if (val.length > 8) val = val.substring(0, 8);
+
+    // Tự động chèn dấu /
+    let formatted = val;
+    if (val.length > 2) formatted = val.substring(0, 2) + '/' + val.substring(2);
+    if (val.length > 4) formatted = val.substring(0, 2) + '/' + val.substring(2, 4) + '/' + val.substring(4);
+
+    setInputValue(formatted);
+
+    // Nếu đủ định dạng DD/MM/YYYY thì cập nhật lên cha dưới dạng YYYY-MM-DD
+    if (formatted.length === 10) {
+      const iso = parseToISODate(formatted);
+      if (iso) onChange(name, iso);
+    }
+  };
+
+  const handleNativeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const iso = e.target.value;
+    onChange(name, iso);
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="text-[10px] font-black text-slate-400 uppercase ml-3 tracking-widest">{label}</label>
+      <div className="relative group">
+        <Icon className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-400 transition-colors" size={18} />
+        <input
+          type="text"
+          placeholder="DD/MM/YYYY"
+          value={inputValue}
+          onChange={handleInputChange}
+          maxLength={10}
+          className="w-full h-14 pl-14 pr-12 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm"
+        />
+        {/* Input date ẩn để dùng trình chọn lịch native */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
+          <input
+            type="date"
+            value={value}
+            onChange={handleNativeChange}
+            className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
+          />
+          <Calendar size={18} className="text-slate-300 pointer-events-none" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- Sub-component: SearchableSelect ---
 interface SearchableSelectProps {
   options: { value: string; label: string }[];
@@ -250,6 +332,10 @@ const App: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleDateChange = (name: string, isoValue: string) => {
+    setFormData(prev => ({ ...prev, [name]: isoValue }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, side: 'front' | 'back' | 'signature') => {
@@ -528,13 +614,13 @@ const App: React.FC = () => {
                 </p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase ml-3 tracking-widest">Ngày tháng năm sinh</label>
-                    <div className="relative">
-                      <Baby className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                      <input type="date" name="birthday" value={formData.birthday} onChange={handleInputChange} className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
-                    </div>
-                  </div>
+                  <DateInput
+                    label="Ngày tháng năm sinh"
+                    name="birthday"
+                    value={formData.birthday}
+                    onChange={handleDateChange}
+                    icon={Baby}
+                  />
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase ml-3 tracking-widest">Giới tính</label>
@@ -630,13 +716,13 @@ const App: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase ml-3 tracking-widest">Ngày cấp CCCD</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                        <input type="date" name="cccd_date" value={formData.cccd_date} onChange={handleInputChange} className="w-full h-14 pl-14 pr-6 bg-white border-2 border-slate-50 rounded-[1.2rem] font-bold outline-none shadow-sm focus:border-indigo-400 transition-all text-sm" />
-                      </div>
-                    </div>
+                    <DateInput
+                      label="Ngày cấp CCCD"
+                      name="cccd_date"
+                      value={formData.cccd_date}
+                      onChange={handleDateChange}
+                      icon={Calendar}
+                    />
                     
                     <SearchableSelect
                       label="Nơi cấp"
