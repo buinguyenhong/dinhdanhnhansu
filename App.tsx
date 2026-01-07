@@ -515,7 +515,7 @@ const App: React.FC = () => {
               </div>
 
               <div className="space-y-6">
-                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b pb-2 flex items-center gap-2"><Mail size={14} /> Liên lạc & Thường trú</p>
+                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-b pb-2 flex items-center gap-2"><Mail size={14} /> Liên lạc & Thường trú (Sau sát nhập)</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <SearchableSelect label="Tỉnh / Thành phố" options={provinces.map(p => ({ value: p.code, label: p.name }))} value={formData.province_code} onChange={(val) => setFormData(prev => ({ ...prev, province_code: val, ward_code: '' }))} placeholder="Chọn Tỉnh" icon={MapPin} />
                   <SearchableSelect label="Xã / Phường" options={wards.map(w => ({ value: w.code, label: w.name }))} value={formData.ward_code} onChange={(val) => setFormData(prev => ({ ...prev, ward_code: val }))} placeholder="Chọn Xã" icon={MapPin} disabled={!formData.province_code} />
